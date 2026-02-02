@@ -1,0 +1,23 @@
+{
+  "name": "blockchain-grading-system",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000B\u0000l\u0000o\u0000c\u0000k\u0000c\u0000h\u0000a\u0000i\u0000n\u0000 \u0000G\u0000r\u0000a\u0000d\u0000i\u0000n\u0000g\u0000 \u0000S\u0000y\u0000s\u0000t\u0000e\u0000m\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imeshiperera12/blockchain-grading-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imeshiperera12/blockchain-grading-system/issues"
+  },
+  "homepage": "https://github.com/imeshiperera12/blockchain-grading-system#readme"
+}

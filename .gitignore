@@ -1,0 +1,13 @@
+# Ignore node modules everywhere
+node_modules
+**/node_modules
+
+# Hardhat build folders
+**/artifacts
+**/cache
+
+# Environment files
+.env
+
+# OS files
+.DS_Store
