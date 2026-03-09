@@ -1,0 +1,28 @@
+{
+  "name": "component4-security-layer-backend",
+  "version": "1.0.0",
+  "description": "Backend services for the ZKP-based grade verification security layer",
+  "main": "src/api-server.js",
+  "scripts": {
+    "start": "node src/api-server.js",
+    "listen": "node src/event-listener.js",
+    "test": "mocha --timeout 60000 ../test/**/*.test.js"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "snarkjs": "^0.7.4"
+  },
+  "devDependencies": {
+    "chai": "^4.4.1",
+    "circom_tester": "^0.0.19",
+    "mocha": "^10.4.0",
+    "supertest": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

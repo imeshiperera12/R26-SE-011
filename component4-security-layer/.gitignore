@@ -1,0 +1,41 @@
+# Dependency directories
+node_modules/
+backend/node_modules/
+
+# Build artifacts
+build/
+dist/
+
+# ZKP proof outputs (contain student data — never commit)
+proof-output/
+
+# Circuit artifacts
+circuits/*.r1cs
+circuits/*.sym
+circuits/*_js/
+circuits/*.zkey
+circuits/*.ptau
+
+# Snarkjs outputs
+*.zkey
+*.ptau
+*.r1cs
+*.sym
+
+# Verification keys (contain sensitive setup info)
+verification_key.json
+
+# Environment files — NEVER commit secrets
+backend/.env
+.env
+.env.*
+!backend/.env.example
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/settings.json

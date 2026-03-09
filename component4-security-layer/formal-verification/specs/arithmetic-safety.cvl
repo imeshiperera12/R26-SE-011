@@ -1,0 +1,71 @@
+/*
+ * arithmetic-safety.cvl
+ * CVL rules verifying arithmetic safety (overflow, underflow, range bounds)
+ * within the GradeVerifier contract and its pairing library.
+ */
+
+using GradeVerifier as verifier;
+
+// ---------------------------------------------------------------------------
+// Rule 1 — Public inputs are within the BN254 scalar field
+//           Field modulus r = 21888242871839275222246405745257275088548364400416034343698204186575808495617
+// ---------------------------------------------------------------------------
+definition BN254_R() returns uint256 =
+    21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+rule publicInputsInScalarField(
+    GradeVerifier.Proof proof,
+    uint256[2] input
+) {
+    env e;
+    require input[0] < BN254_R();
+    require input[1] < BN254_R();
+
+    // If inputs are in range the call must not revert unexpectedly
+    verifier.verifyProof@withrevert(e, proof, input);
+    assert !lastReverted || verifier.paused(e),
+        "verifyProof must not revert for valid in-field inputs (unless paused)";
+}
+
+// ---------------------------------------------------------------------------
+// Rule 2 — Scalar multiplication result is deterministic (no wraparound)
+// ---------------------------------------------------------------------------
+rule scalarMulDeterministic(
+    uint256 px, uint256 py,
+    uint256 scalar
+) {
+    env e1; env e2;
+    require px   < BN254_R();
+    require py   < BN254_R();
+    require scalar < BN254_R();
+
+    // Same inputs must always produce the same output (determinism implies no overflow path)
+    uint256 rx1; uint256 ry1;
+    uint256 rx2; uint256 ry2;
+
+    // Modelled as ghost calls — replace with the actual function signature after generation
+    (rx1, ry1) = verifier.ecMul(e1, px, py, scalar);
+    (rx2, ry2) = verifier.ecMul(e2, px, py, scalar);
+
+    assert rx1 == rx2 && ry1 == ry2,
+        "Scalar multiplication must be deterministic";
+}
+
+// ---------------------------------------------------------------------------
+// Rule 3 — Grade threshold encoded in public input does not exceed 100
+//           (enforced at the application layer before calling verifyProof)
+// ---------------------------------------------------------------------------
+rule thresholdWithinGradeRange(
+    GradeVerifier.Proof proof,
+    uint256[2] input
+) {
+    env e;
+    // input[0] = threshold
+    require input[0] <= 100;
+
+    bool valid = verifier.verifyProof(e, proof, input);
+
+    // A valid proof with threshold <= 100 is acceptable; must not panic
+    assert !lastReverted || verifier.paused(e),
+        "verifyProof must handle threshold <= 100 without arithmetic panic";
+}

@@ -1,0 +1,46 @@
+﻿
+ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
+Γòæ     ZKP Grade Verifier ΓÇö One-Time Trusted Setup          Γòæ
+Γòæ     Research Component 4 ┬╖ Susara Perera IT22276346      Γòæ
+ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
+
+[ 1 / 5 ]  Compiling gradeVerifier.circom ...
+[32mtemplate instances[0m: 71
+non-linear constraints: 216
+linear constraints: 199
+public inputs: 1
+private inputs: 1
+public outputs: 0
+wires: 417
+labels: 583
+[32mWritten successfully:[0m D:\SLIIT\Year 04\First_Semester\RP\RP_Security-FormalVerification\component4-security-layer\build\gradeVerifier.r1cs
+[32mWritten successfully:[0m D:\SLIIT\Year 04\First_Semester\RP\RP_Security-FormalVerification\component4-security-layer\build\gradeVerifier.sym
+[32mWritten successfully:[0m D:\SLIIT\Year 04\First_Semester\RP\RP_Security-FormalVerification\component4-security-layer\build\gradeVerifier_js\gradeVerifier.wasm
+[32mEverything went okay[0m
+           Γ£ô Circuit compiled  ΓåÆ  build/gradeVerifier.r1cs
+
+[ 2 / 5 ]  Generating Powers of Tau  (BN128, 2^12 constraints) ...
+           Γ£ô Powers of Tau ready  ΓåÆ  build/pot12_final.ptau
+
+[ 3 / 5 ]  Groth16 Phase 2 setup ...
+           Γ£ô Initial zkey  ΓåÆ  build/gradeVerifier_0000.zkey
+
+[ 4 / 5 ]  Contributing entropy to zkey ...
+           Γ£ô Final zkey  ΓåÆ  build/gradeVerifier_final.zkey
+
+[ 5 / 5 ]  Exporting verification key ...
+           Γ£ô Verification key  ΓåÆ  build/verification_key.json
+
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+  Γ£à  Setup complete!  Artifacts generated in build/
+
+     build/gradeVerifier.r1cs              circuit constraints
+     build/gradeVerifier_js/*.wasm          witness generator
+     build/gradeVerifier_final.zkey         proving key
+     build/verification_key.json            verifying key
+
+  Next steps:
+     npm run generate    ΓåÆ  generate ZKP proof from grade
+     npm run verify      ΓåÆ  verify the proof
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+

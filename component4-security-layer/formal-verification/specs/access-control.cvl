@@ -1,0 +1,62 @@
+/*
+ * access-control.cvl
+ * CVL (Certora Verification Language) rules for access control properties
+ * of the GradeVerifier contract.
+ */
+
+using GradeVerifier as verifier;
+
+// ---------------------------------------------------------------------------
+// Rule 1 — Only the contract owner can update the verification key
+// ---------------------------------------------------------------------------
+rule onlyOwnerCanUpdateKey(method f) {
+    env e;
+    calldataarg args;
+
+    address caller = e.msg.sender;
+    address owner  = verifier.owner(e);
+
+    // Record state before
+    bool keyBefore = verifier.verificationKeySet(e);
+
+    f(e, args);
+
+    bool keyAfter = verifier.verificationKeySet(e);
+
+    // If the verification key changed, the caller must be the owner
+    assert keyBefore != keyAfter => caller == owner,
+        "Only owner can update the verification key";
+}
+
+// ---------------------------------------------------------------------------
+// Rule 2 — verifyProof must revert when paused
+// ---------------------------------------------------------------------------
+rule verifyProofRevertsWhenPaused(
+    GradeVerifier.Proof proof,
+    uint256[2] input
+) {
+    env e;
+    require verifier.paused(e) == true;
+
+    verifier.verifyProof@withrevert(e, proof, input);
+    assert lastReverted,
+        "verifyProof must revert when contract is paused";
+}
+
+// ---------------------------------------------------------------------------
+// Rule 3 — verifyProof is view (no state changes)
+// ---------------------------------------------------------------------------
+rule verifyProofIsStateless(
+    GradeVerifier.Proof proof,
+    uint256[2] input
+) {
+    env e1; env e2;
+    require e1.msg.value == 0;
+
+    storage before = lastStorage;
+    verifier.verifyProof(e1, proof, input);
+    storage after = lastStorage;
+
+    assert before == after,
+        "verifyProof must not modify contract state";
+}

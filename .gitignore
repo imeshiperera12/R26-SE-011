@@ -1,0 +1,16 @@
+# Python virtual environments
+.venv/
+.venv-1/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# IDE / tool config
+.qodo/
+.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

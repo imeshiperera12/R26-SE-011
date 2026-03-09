@@ -1,0 +1,8 @@
+{
+    "importFilesToOrigRelpaths": {},
+    "primary_contract": "GradeVerifier",
+    "specfile": "formal-verification/specs/grade-verifier.cvl",
+    "specfileOrigRelpath": "formal-verification/specs/grade-verifier.cvl",
+    "specfilesToImportDecls": {},
+    "type": "spec"
+}

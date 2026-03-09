@@ -1,0 +1,51 @@
+/*
+ * state-invariants.cvl
+ * CVL rules enforcing key state invariants of the GradeVerifier contract.
+ */
+
+using GradeVerifier as verifier;
+
+// ---------------------------------------------------------------------------
+// Invariant 1 — Verification key, once set, cannot be cleared
+// ---------------------------------------------------------------------------
+invariant verificationKeyNeverCleared()
+    verifier.verificationKeySet() == true
+    filtered { f -> f.selector != sig:initialize().selector }
+
+// ---------------------------------------------------------------------------
+// Invariant 2 — Proof counter is monotonically non-decreasing
+// ---------------------------------------------------------------------------
+rule proofCounterNeverDecreases(method f) {
+    env e;
+    calldataarg args;
+
+    uint256 countBefore = verifier.proofCount(e);
+    f(e, args);
+    uint256 countAfter  = verifier.proofCount(e);
+
+    assert countAfter >= countBefore,
+        "Proof counter must never decrease";
+}
+
+// ---------------------------------------------------------------------------
+// Invariant 3 — A failed proof does not increment the proof counter
+// ---------------------------------------------------------------------------
+rule failedProofDoesNotIncrementCounter(
+    GradeVerifier.Proof proof,
+    uint256[1] input
+) {
+    env e;
+
+    uint256 countBefore = verifier.proofCount(e);
+    bool valid = verifier.verifyProof(e, proof, input);
+    uint256 countAfter  = verifier.proofCount(e);
+
+    assert !valid => countAfter == countBefore,
+        "Invalid proof must not increment the counter";
+}
+
+// ---------------------------------------------------------------------------
+// Invariant 4 — Contract balance is always zero (no ETH accepted)
+// ---------------------------------------------------------------------------
+invariant contractBalanceAlwaysZero()
+    nativeBalances[verifier] == 0

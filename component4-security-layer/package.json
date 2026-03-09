@@ -1,0 +1,36 @@
+{
+  "name": "component4-security-layer",
+  "version": "1.0.0",
+  "description": "Zero-Knowledge Proof (ZKP) grade verification with formal verification via the Certora Prover.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "generate": "node scripts/generateProof.js",
+    "verify": "node scripts/verifyProof.js",
+    "demo": "node scripts/generateProof.js && node scripts/verifyProof.js",
+    "deploy": "npx hardhat run scripts/deploy-verifier.js --network localhost",
+    "test": "npx hardhat test"
+  },
+  "keywords": [],
+  "author": "Susara Perera IT22276346",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "chai": "^4.4.1",
+    "dotenv": "^17.3.1",
+    "ethers": "^6.16.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.0",
+    "hardhat": "^2.22.0",
+    "supertest": "^7.2.2"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.4"
+  }
+}
