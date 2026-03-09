@@ -35,6 +35,23 @@ backend/.env
 *.log
 logs/
 
+# Certora Prover auto-generated cache (re-created by certoraRun)
+.certora_internal/
+.certora_sources/
+.certora_build.json
+.certora_build_output_props.json
+.certora_config/
+.certora_metadata.json
+.certora_verify.json
+.configuration_layout.json
+.vscode_extension_info.json
+run.conf
+certora-*.log
+certora-new*.log
+gen-out.txt
+setup-out.txt
+verify-out.txt
+
 # OS / editor
 .DS_Store
 Thumbs.db
