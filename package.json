@@ -6,7 +6,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests/hash.test.js"
+    "test": "node tests/hash.test.js",
+    "test:merkle": "node tests/merkle.test.js"
   },
   "repository": {
     "type": "git",
