@@ -18,4 +18,16 @@ router.get("/results/:moduleCode", (req, res) => {
   res.json(dummyData);
 });
 
+// POST edit result
+router.post("/edit", (req, res) => {
+  const { candidateId, newMarks, newGrade } = req.body;
+
+  res.json({
+    message: "Edit successful",
+    candidateId,
+    newMarks,
+    newGrade
+  });
+});
+
 module.exports = router;
