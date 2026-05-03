@@ -1,8 +1,22 @@
 const express = require("express");
 const router = express.Router();
+const crypto = require("crypto");
+
 const Result = require("../models/Result");
 
-// GET results by module
+// =======================================
+// MODULE ASSIGNMENTS
+// =======================================
+
+const boaUsers = {
+  boaA: "SE3040",
+  boaB: "SE3050",
+};
+
+// =======================================
+// GET RESULTS BY MODULE
+// =======================================
+
 router.get("/results/:moduleCode", (req, res) => {
   const moduleCode = req.params.moduleCode;
 
@@ -19,20 +33,78 @@ router.get("/results/:moduleCode", (req, res) => {
   res.json(dummyData);
 });
 
-// POST edit result
+// =======================================
+// POST EDIT RESULT
+// =======================================
+
 router.post("/edit", async (req, res) => {
-  const { candidateId, newMarks, newGrade, editedBy, reason } = req.body;
+  const {
+    boaUser,
+    moduleCode,
+    candidateId,
+    newMarks,
+    newGrade,
+    editedBy,
+    reason,
+  } = req.body;
 
   try {
+    // =======================================
+    // FIND RESULT
+    // =======================================
+
     let result = await Result.findOne({ candidateId });
 
-    // 👉 FIRST TIME INSERT
+    // =======================================
+    // CHECK 14-DAY DEADLINE
+    // =======================================
+
+    if (result) {
+      const deadline = new Date(result.releaseDate);
+
+      // ADD 14 DAYS
+      deadline.setDate(deadline.getDate() + 14);
+
+      // CHECK CURRENT DATE
+      if (new Date() > deadline) {
+        return res.status(403).json({
+          message: "Editing deadline has passed for this result",
+        });
+      }
+    }
+
+    // =======================================
+    // CHECK MODULE ACCESS
+    // =======================================
+
+    const allowedModule = boaUsers[boaUser];
+
+    if (allowedModule !== moduleCode) {
+      return res.status(403).json({
+        message: "Access denied for this module",
+      });
+    }
+
+    // =======================================
+    // FIRST INSERT
+    // =======================================
+
     if (!result) {
+      // GENERATE HASH
+      const hashData = `${candidateId}-${newMarks}-${newGrade}`;
+
+      const generatedHash = crypto
+        .createHash("sha256")
+        .update(hashData)
+        .digest("hex");
+
       result = new Result({
         candidateId,
+        moduleCode,
         marks: newMarks,
         grade: newGrade,
         version: 1,
+        hash: generatedHash,
         history: [],
       });
 
@@ -44,34 +116,73 @@ router.post("/edit", async (req, res) => {
       });
     }
 
-    // 👉 SAVE AUDIT TRAIL
+    // =======================================
+    // SAVE AUDIT TRAIL
+    // =======================================
+
     result.history.push({
       version: result.version,
+
       oldMarks: result.marks,
       newMarks,
+
       oldGrade: result.grade,
       newGrade,
+
       editedBy: editedBy || "BOA Member",
+
       reason: reason || "Not specified",
+
       editedAt: new Date(),
     });
 
-    // 👉 UPDATE VALUES
+    // =======================================
+    // UPDATE VALUES
+    // =======================================
+
     result.marks = newMarks;
     result.grade = newGrade;
 
-    // 👉 VERSION INCREMENT
+    // =======================================
+    // VERSION INCREMENT
+    // =======================================
+
     result.version += 1;
+
+    // =======================================
+    // GENERATE NEW HASH
+    // =======================================
+
+    const hashData = `${candidateId}-${newMarks}-${newGrade}-${result.version}`;
+
+    const generatedHash = crypto
+      .createHash("sha256")
+      .update(hashData)
+      .digest("hex");
+
+    result.hash = generatedHash;
+
+    // =======================================
+    // SAVE
+    // =======================================
 
     await result.save();
 
+    // =======================================
+    // RESPONSE
+    // =======================================
+
     res.json({
-      message: "Edit saved with audit trail",
+      message: "Edit saved successfully",
       result,
+      generatedHash,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Server error" });
+
+    res.status(500).json({
+      error: "Server error",
+    });
   }
 });
 

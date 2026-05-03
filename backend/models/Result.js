@@ -2,14 +2,22 @@ const mongoose = require("mongoose");
 
 const resultSchema = new mongoose.Schema({
   candidateId: String,
+
   moduleCode: String,
 
   marks: Number,
   grade: String,
 
+  hash: String,
+
+  releaseDate: {
+    type: Date,
+    default: Date.now,
+  },
+
   version: {
     type: Number,
-    default: 1
+    default: 1,
   },
 
   history: [
@@ -21,14 +29,14 @@ const resultSchema = new mongoose.Schema({
       newGrade: String,
       editedBy: String,
       reason: String,
-      editedAt: Date
-    }
+      editedAt: Date,
+    },
   ],
 
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model("Result", resultSchema);
