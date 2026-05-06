@@ -20,5 +20,12 @@
     "url": "https://github.com/imeshiperera12/blockchain-grading-system/issues"
   },
   "homepage": "https://github.com/imeshiperera12/blockchain-grading-system#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "axios": "^1.16.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "form-data": "^4.0.5",
+    "ipfs-http-client": "^56.0.3"
+  }
 }
