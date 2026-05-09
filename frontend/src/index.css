@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap');
+
+/* ─── Design Tokens ──────────────────────────────── */
+:root {
+  --bg:          #0f1117;
+  --surface:     #161b27;
+  --surface2:    #1e2535;
+  --border:      #2a3245;
+  --border-light:#3a4a66;
+
+  --text:        #e8dfc8;
+  --text-muted:  #8a95a8;
+  --text-dim:    #4a5568;
+
+  --accent:      #c8a96e;
+  --accent-dim:  #8a6f3e;
+  --accent-glow: rgba(200, 169, 110, 0.12);
+
+  --danger:      #e07070;
+  --danger-dim:  rgba(224, 112, 112, 0.12);
+  --success:     #6dbf8a;
+  --success-dim: rgba(109, 191, 138, 0.12);
+  --info:        #6ba3d6;
+
+  --radius-sm:   4px;
+  --radius:      8px;
+  --radius-lg:   14px;
+
+  --shadow:      0 4px 24px rgba(0,0,0,0.4);
+  --shadow-sm:   0 2px 8px rgba(0,0,0,0.3);
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'Source Serif 4', Georgia, serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+}
+
+/* ─── Reset & Base ───────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Subtle noise texture overlay */
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(200,169,110,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(107,163,214,0.04) 0%, transparent 60%);
+  min-height: 100vh;
+}
+
+code {
+  font-family: var(--font-mono);
+}
+
+/* ─── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+
+/* ─── Selection ──────────────────────────────────── */
+::selection {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+/* ─── Keyframes ──────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--accent-dim); }
+  50%       { border-color: var(--accent); }
+}

@@ -16,7 +16,6 @@ const boaUsers = {
 // =======================================
 // GET RESULTS BY MODULE
 // =======================================
-
 router.get("/results/:moduleCode", (req, res) => {
   const moduleCode = req.params.moduleCode;
 
@@ -34,9 +33,33 @@ router.get("/results/:moduleCode", (req, res) => {
 });
 
 // =======================================
+// GET CANDIDATE BY ID
+// =======================================
+router.get("/candidate/:candidateId", async (req, res) => {
+  try {
+    const candidateId = req.params.candidateId;
+
+    const result = await Result.findOne({ candidateId });
+
+    if (!result) {
+      return res.status(404).json({
+        message: "Candidate not found",
+      });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
+});
+
+// =======================================
 // POST EDIT RESULT
 // =======================================
-
 router.post("/edit", async (req, res) => {
   const {
     boaUser,
@@ -90,29 +113,8 @@ router.post("/edit", async (req, res) => {
     // =======================================
 
     if (!result) {
-      // GENERATE HASH
-      const hashData = `${candidateId}-${newMarks}-${newGrade}`;
-
-      const generatedHash = crypto
-        .createHash("sha256")
-        .update(hashData)
-        .digest("hex");
-
-      result = new Result({
-        candidateId,
-        moduleCode,
-        marks: newMarks,
-        grade: newGrade,
-        version: 1,
-        hash: generatedHash,
-        history: [],
-      });
-
-      await result.save();
-
-      return res.json({
-        message: "Initial record created",
-        result,
+      return res.status(404).json({
+        message: "Candidate record not found",
       });
     }
 

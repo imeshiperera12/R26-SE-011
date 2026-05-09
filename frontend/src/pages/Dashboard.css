@@ -1,0 +1,140 @@
+/* ─── Dashboard Layout ─────────────────────────────── */
+.dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.5s ease both;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.dashboard__header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.dashboard__header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.dashboard__brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dashboard__brand-mark {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1.5px solid var(--accent-dim);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.dashboard__title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.dashboard__subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* ── Meta Badges ─────────────────────────────────────── */
+.dashboard__meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dashboard__badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  min-width: 140px;
+}
+
+.dashboard__badge--user {
+  border-color: var(--border-light);
+}
+
+.dashboard__badge--module {
+  border-color: var(--accent-dim);
+  background: var(--accent-glow);
+}
+
+.dashboard__badge-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.dashboard__badge-value {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.dashboard__badge--module .dashboard__badge-value {
+  color: var(--accent);
+}
+
+.dashboard__header-rule {
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-dim) 0%, transparent 60%);
+  margin: 0 -40px;
+  opacity: 0.5;
+}
+
+/* ── Body ────────────────────────────────────────────── */
+.dashboard__body {
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 40px 80px;
+  animation: fadeUp 0.5s 0.1s ease both;
+}
+
+@media (max-width: 700px) {
+  .dashboard__header { padding: 0 20px; }
+  .dashboard__body   { padding: 24px 20px 60px; }
+  .dashboard__header-inner { flex-direction: column; align-items: flex-start; }
+  .dashboard__meta { width: 100%; }
+  .dashboard__badge { flex: 1; }
+}

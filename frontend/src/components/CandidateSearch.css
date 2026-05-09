@@ -1,0 +1,244 @@
+/* ─── CandidateSearch ────────────────────────────────── */
+.cs-root {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Shared Section Labels ─────────────────────────────── */
+.cs-section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.cs-section-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.cs-section-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ── Search Panel ──────────────────────────────────────── */
+.cs-search-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  animation: fadeUp 0.4s 0.15s ease both;
+}
+
+.cs-search-panel__header {
+  margin-bottom: 22px;
+}
+
+.cs-search-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.cs-input-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 380px;
+}
+
+.cs-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  display: flex;
+  pointer-events: none;
+}
+
+.cs-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 12px 14px 12px 42px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cs-input::placeholder { color: var(--text-dim); }
+
+.cs-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ── Buttons ───────────────────────────────────────────── */
+.cs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.cs-btn--primary {
+  background: var(--accent);
+  color: #0f1117;
+}
+
+.cs-btn--primary:hover:not(:disabled) {
+  background: #d9bb84;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(200,169,110,0.3);
+}
+
+.cs-btn--primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cs-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cs-btn--loading {
+  pointer-events: none;
+}
+
+.cs-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(15,17,23,0.3);
+  border-top-color: #0f1117;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Error ─────────────────────────────────────────────── */
+.cs-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--danger);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  background: var(--danger-dim);
+  border: 1px solid rgba(224,112,112,0.2);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  animation: fadeIn 0.25s ease;
+}
+
+/* ── Results ───────────────────────────────────────────── */
+.cs-results {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeUp 0.4s ease both;
+}
+
+/* ── Cards ─────────────────────────────────────────────── */
+.cs-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+}
+
+.cs-card__header {
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Candidate Detail Grid ─────────────────────────────── */
+.cs-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.cs-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.cs-detail-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cs-detail-value {
+  font-size: 16px;
+  color: var(--text);
+}
+
+.cs-detail-value--mono  { font-family: var(--font-mono); }
+.cs-detail-value--accent { color: var(--accent); }
+.cs-detail-value--muted  { color: var(--text-muted); }
+.cs-detail-value--large  { font-size: 24px; font-weight: 600; line-height: 1; }
+
+.cs-detail-unit {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 3px;
+}
+
+/* ── Grade Badge ───────────────────────────────────────── */
+.cs-grade-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  width: 48px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+}
+
+.cs-grade-badge--high   { color: #6dbf8a; background: rgba(109,191,138,0.12); border: 1px solid rgba(109,191,138,0.25); }
+.cs-grade-badge--mid    { color: #6ba3d6; background: rgba(107,163,214,0.12); border: 1px solid rgba(107,163,214,0.25); }
+.cs-grade-badge--low    { color: var(--accent); background: var(--accent-glow); border: 1px solid rgba(200,169,110,0.25); }
+.cs-grade-badge--warn   { color: #e0a070; background: rgba(224,160,112,0.12); border: 1px solid rgba(224,160,112,0.25); }
+.cs-grade-badge--fail   { color: var(--danger); background: var(--danger-dim); border: 1px solid rgba(224,112,112,0.25); }
+.cs-grade-badge--neutral{ color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); }
+
+@media (max-width: 600px) {
+  .cs-search-panel, .cs-card { padding: 20px; }
+  .cs-search-row { flex-direction: column; }
+  .cs-input-wrap { max-width: 100%; }
+}
