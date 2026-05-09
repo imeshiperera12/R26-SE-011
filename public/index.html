@@ -4,80 +4,231 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blockchain Proof Generator</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg: #07080d;
+      --surface: #0d0f18;
+      --surface2: #12151f;
+      --border: rgba(255,255,255,0.07);
+      --border-accent: rgba(99, 179, 237, 0.3);
+      --accent: #63b3ed;
+      --accent2: #90cdf4;
+      --green: #68d391;
+      --green-dim: rgba(104, 211, 145, 0.15);
+      --red: #fc8181;
+      --text: #e2e8f0;
+      --text-dim: #4a5568;
+      --text-mid: #718096;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
     body {
       min-height: 100vh;
-      background: #0a0a0f;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      padding: 48px 24px 80px;
       display: flex;
-      align-items: center;
       justify-content: center;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      padding: 40px 20px;
     }
 
-    .page-wrapper {
-      width: 100%;
-      max-width: 720px;
-    }
+    .wrap { width: 100%; max-width: 780px; }
 
-    .badge {
+    /* Header */
+    .header { margin-bottom: 48px; }
+
+    .tag {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(131, 110, 249, 0.35);
-      background: rgba(131, 110, 249, 0.08);
-      margin-bottom: 28px;
-    }
-
-    .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #836ef9;
-      box-shadow: 0 0 8px rgba(131, 110, 249, 0.8);
-    }
-
-    .badge span {
-      font-size: 12px;
-      font-weight: 500;
-      color: #a99cf5;
-      letter-spacing: 0.05em;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0.8;
     }
+    .tag-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 
-    .heading {
+    h1 {
+      font-family: var(--sans);
       font-size: 42px;
       font-weight: 700;
-      color: #ffffff;
       letter-spacing: -0.03em;
       line-height: 1.15;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+
+    .sub {
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.7;
+      max-width: 480px;
+      font-family: var(--mono);
+    }
+
+    .rule {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin: 36px 0;
+    }
+
+    /* Dataset Editor */
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
       margin-bottom: 14px;
     }
 
-    .heading span {
-      background: linear-gradient(135deg, #836ef9 0%, #a78bfa 50%, #c4b5fd 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .dataset-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 16px;
     }
 
-    .subtext {
-      font-size: 15px;
-      color: #6b6b8a;
-      line-height: 1.75;
-      max-width: 500px;
-      margin-bottom: 40px;
+    .dataset-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
     }
 
-    .divider {
+    .dataset-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-mid);
+    }
+
+    .icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    /* Table */
+    .table-scroll { overflow-x: auto; }
+
+    table {
       width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(131, 110, 249, 0.25), transparent);
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    th:last-child { text-align: center; }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    td {
+      padding: 10px 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    td input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 6px 10px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    td input:focus {
+      border-color: var(--accent);
+      background: rgba(99, 179, 237, 0.06);
+    }
+
+    td.row-num {
+      color: var(--text-dim);
+      font-size: 11px;
+      width: 40px;
+    }
+
+    td.actions { text-align: center; }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      font-family: var(--mono);
+    }
+    .del-btn:hover { color: var(--red); background: rgba(252,129,129,0.08); }
+
+    /* Add row button */
+    .add-row-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 12px;
+      transition: color 0.2s, background 0.2s;
+      text-align: left;
+    }
+    .add-row-btn:hover { background: rgba(255,255,255,0.02); color: var(--accent); }
+
+    /* Actions */
+    .actions-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
       margin-bottom: 40px;
     }
 
@@ -85,335 +236,353 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 28px;
-      border-radius: 12px;
-      border: 1px solid rgba(131, 110, 249, 0.5);
-      background: linear-gradient(135deg, #534AB7 0%, #6d5ce7 100%);
-      color: #fff;
-      font-size: 14px;
+      padding: 13px 26px;
+      border-radius: 10px;
+      border: 1px solid rgba(99, 179, 237, 0.4);
+      background: rgba(99, 179, 237, 0.1);
+      color: var(--accent2);
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      font-family: inherit;
-      letter-spacing: 0.01em;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+      transition: all 0.2s;
     }
-
-    .generate-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 100%);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .generate-btn:hover::before { opacity: 1; }
-    .generate-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(83, 74, 183, 0.45); }
+    .generate-btn:hover { background: rgba(99, 179, 237, 0.18); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(99,179,237,0.15); }
     .generate-btn:active { transform: scale(0.98) translateY(0); }
-
-    .btn-area {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 40px;
-    }
 
     .status-wrap {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
-      color: #6b6b8a;
-      min-height: 22px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      min-height: 20px;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .spinner {
-      width: 16px;
-      height: 16px;
-      border: 1.5px solid rgba(131, 110, 249, 0.2);
-      border-top-color: #836ef9;
+      width: 14px; height: 14px;
+      border: 1.5px solid rgba(99,179,237,0.2);
+      border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       display: none;
     }
 
-    .cards-grid {
+    /* Results */
+    .results-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 40px;
+      gap: 14px;
+      margin-bottom: 14px;
     }
+
+    @media (max-width: 560px) { .results-grid { grid-template-columns: 1fr; } }
 
     .result-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 16px;
-      padding: 22px;
-      transition: border-color 0.3s ease;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: border-color 0.3s;
     }
+    .result-card.lit { border-color: var(--border-accent); background: rgba(99,179,237,0.03); }
+    .result-card.lit-green { border-color: rgba(104,211,145,0.3); background: rgba(104,211,145,0.03); }
 
-    .result-card.has-value {
-      border-color: rgba(131, 110, 249, 0.25);
-      background: rgba(131, 110, 249, 0.04);
+    .rc-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
     }
+    .rc-label.blue { color: var(--accent); }
+    .rc-label.green { color: var(--green); }
 
-    .result-card.has-value.teal-card {
-      border-color: rgba(29, 158, 117, 0.25);
-      background: rgba(29, 158, 117, 0.04);
+    .rc-value {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text-dim);
+      word-break: break-all;
+      line-height: 1.8;
+      font-style: italic;
+      min-height: 44px;
+      transition: color 0.3s;
     }
+    .rc-value.on { color: var(--accent2); font-style: normal; }
+    .rc-value.on-green { color: var(--green); font-style: normal; }
 
-    .card-header {
+    .rc-value a { color: var(--green); }
+
+    /* Steps card */
+    .steps-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .step-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .card-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: rgba(131, 110, 249, 0.12);
-      border: 1px solid rgba(131, 110, 249, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .card-icon.teal {
-      background: rgba(29, 158, 117, 0.12);
-      border-color: rgba(29, 158, 117, 0.2);
-    }
-
-    .card-label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #836ef9;
-    }
-
-    .card-label.teal { color: #1D9E75; }
-
-    .card-value {
-      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-family: var(--mono);
       font-size: 12px;
-      color: #3d3d5c;
-      word-break: break-all;
-      line-height: 1.75;
-      min-height: 48px;
-      font-style: italic;
-      transition: color 0.3s ease;
-      white-space: pre-wrap;
+      color: var(--text-dim);
+      padding: 5px 0;
     }
-
-    .card-value.populated {
-      color: #a99cf5;
-      font-style: normal;
+    .step-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.4s, box-shadow 0.4s;
     }
-
-    .card-value.populated.teal-val { color: #4db896; }
-
-    .card-value.steps-populated {
-      color: #c4b5fd;
-      font-style: normal;
-    }
-
-    .card-value.data-populated {
-      color: #5dcaa5;
-      font-style: normal;
-    }
+    .step-dot.done { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .step-row.done-row { color: var(--text-mid); }
 
     .footer-note {
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      padding: 16px 20px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.06);
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
+      margin-top: 28px;
     }
-
     .footer-note span {
-      font-size: 12px;
-      color: #4a4a6a;
-      line-height: 1.65;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.7;
     }
-
-    .ok-icon { display: none; color: #1D9E75; font-size: 17px; }
-    .err-icon { display: none; color: #E24B4A; font-size: 17px; }
   </style>
 </head>
 <body>
+<div class="wrap">
 
-  <div class="page-wrapper">
+  <header class="header">
+    <div class="tag"><div class="tag-dot"></div> Research demo · Blockchain layer</div>
+    <h1>Blockchain <em>proof</em><br>generator</h1>
+    <p class="sub">Edit the dataset below, then generate a cryptographic Merkle root + IPFS pin. Different inputs → different proof.</p>
+  </header>
 
-    <div class="badge">
-      <div class="badge-dot"></div>
-      <span>Research demo &middot; Blockchain layer</span>
-    </div>
+  <div class="rule"></div>
 
-    <h1 class="heading">Blockchain <span>proof generator</span></h1>
-    <p class="subtext">Computes a cryptographic Merkle root and pins data to IPFS to create a tamper-evident provenance record for your dataset.</p>
-
-    <div class="divider"></div>
-
-    <div class="btn-area">
-      <button class="generate-btn" onclick="generateProof()" id="gen-btn">
-        <i class="ti ti-shield-check" style="font-size: 18px;" aria-hidden="true"></i>
-        Generate proof
-      </button>
-      <div class="status-wrap">
-        <div class="spinner" id="spinner"></div>
-        <i class="ti ti-circle-check ok-icon" id="ok-icon" aria-hidden="true"></i>
-        <i class="ti ti-alert-circle err-icon" id="err-icon" aria-hidden="true"></i>
-        <span id="status-text" style="font-size: 13px; color: #6b6b8a;"></span>
+  <!-- Dataset Editor -->
+  <p class="section-label"></p>
+  <div class="dataset-box">
+    <div class="dataset-header">
+      <div class="dataset-header-left">
+        <div class="icon">🗃</div>
+        <span>results.json</span>
       </div>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);" id="row-count">3 records</span>
     </div>
 
-    <!-- PROCESS STEPS -->
-    <div class="result-card" style="margin-bottom: 16px;">
-      <div class="card-header">
-        <div class="card-icon">
-          <i class="ti ti-settings" style="font-size: 17px; color: #836ef9;" aria-hidden="true"></i>
-        </div>
-        <span class="card-label">Processing steps</span>
-      </div>
-      <div class="card-value" id="steps">Awaiting generation…</div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Grade</th>
+            <th>✕</th>
+          </tr>
+        </thead>
+        <tbody id="records-body"></tbody>
+      </table>
     </div>
 
-    <!-- INPUT DATASET -->
-    <div class="result-card" style="margin-bottom: 40px;">
-      <div class="card-header">
-        <div class="card-icon">
-          <i class="ti ti-database" style="font-size: 17px; color: #836ef9;" aria-hidden="true"></i>
-        </div>
-        <span class="card-label">Input dataset</span>
-      </div>
-      <div class="card-value" id="input-data">Not loaded</div>
-    </div>
-
-    <div class="cards-grid">
-      <div class="result-card" id="merkle-card">
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="ti ti-binary-tree" style="font-size: 17px; color: #836ef9;" aria-hidden="true"></i>
-          </div>
-          <span class="card-label">Merkle root</span>
-        </div>
-        <div class="card-value" id="merkle-out">Awaiting generation…</div>
-      </div>
-
-      <div class="result-card" id="cid-card">
-        <div class="card-header">
-          <div class="card-icon teal">
-            <i class="ti ti-link" style="font-size: 17px; color: #1D9E75;" aria-hidden="true"></i>
-          </div>
-          <span class="card-label teal">Content ID (CID)</span>
-        </div>
-        <div class="card-value" id="cid-out">Awaiting generation…</div>
-      </div>
-    </div>
-
-    <div class="footer-note">
-      <i class="ti ti-info-circle" style="font-size: 15px; color: #3d3d5c; flex-shrink: 0; margin-top: 1px;" aria-hidden="true"></i>
-      <span>Results are generated by the connected proof server. Hash values are deterministic per input dataset and cannot be altered retroactively.</span>
-    </div>
-
+    <button class="add-row-btn" onclick="addRow()">
+      <span>+</span> Add record
+    </button>
   </div>
 
-  <script>
-    async function generateProof() {
-      const spinner = document.getElementById("spinner");
-      const okIcon = document.getElementById("ok-icon");
-      const errIcon = document.getElementById("err-icon");
-      const statusText = document.getElementById("status-text");
-      const merkleOut = document.getElementById("merkle-out");
-      const cidOut = document.getElementById("cid-out");
-      const merkleCard = document.getElementById("merkle-card");
-      const cidCard = document.getElementById("cid-card");
-      const steps = document.getElementById("steps");
-      const inputData = document.getElementById("input-data");
+  <!-- Actions -->
+  <div class="actions-row">
+    <button class="generate-btn" id="gen-btn" onclick="generateProof()">
+      ⬡ Generate proof
+    </button>
+    <div class="status-wrap">
+      <div class="spinner" id="spinner"></div>
+      <span id="status-text"></span>
+    </div>
+  </div>
 
-      // Reset UI
-      spinner.style.display = "block";
-      okIcon.style.display = "none";
-      errIcon.style.display = "none";
-      statusText.textContent = "Processing…";
-      statusText.style.color = "#6b6b8a";
+  <!-- Steps -->
+  <div class="steps-card" id="steps-card">
+    <p class="rc-label" style="margin-bottom:14px;">Processing pipeline</p>
+    <div class="step-row" id="s1"><div class="step-dot" id="d1"></div> Hash each record (SHA-256)</div>
+    <div class="step-row" id="s2"><div class="step-dot" id="d2"></div> Build Merkle tree</div>
+    <div class="step-row" id="s3"><div class="step-dot" id="d3"></div> Upload payload to IPFS (Pinata)</div>
+  </div>
 
-      merkleOut.className = "card-value";
-      merkleOut.textContent = "Computing…";
-      cidOut.className = "card-value";
-      cidOut.textContent = "Computing…";
-      merkleCard.classList.remove("has-value");
-      cidCard.classList.remove("has-value", "teal-card");
+  <!-- Results -->
+  <div class="results-grid">
+    <div class="result-card" id="merkle-card">
+      <p class="rc-label blue">Merkle root</p>
+      <div class="rc-value" id="merkle-out">Awaiting generation…</div>
+    </div>
+    <div class="result-card" id="cid-card">
+      <p class="rc-label green">Content ID (CID)</p>
+      <div class="rc-value" id="cid-out">Awaiting generation…</div>
+    </div>
+  </div>
 
-      // Loading state for new cards
-      steps.className = "card-value";
-      steps.textContent = "1. Hashing records...\n2. Building Merkle tree...\n3. Uploading to IPFS...";
-      inputData.className = "card-value";
-      inputData.textContent = "Loading dataset...";
+  <div class="footer-note">
+    <span>ℹ</span>
+    <span>Hash values are deterministic per input. Changing any field — even whitespace — produces a completely different Merkle root and CID.</span>
+  </div>
 
-      try {
-        const res = await fetch("/generate-proof");
-        const data = await res.json();
-        spinner.style.display = "none";
+</div>
 
-        if (data.success) {
-          // Merkle root
-          merkleOut.textContent = data.merkleRoot;
-          merkleOut.className = "card-value populated";
-          merkleCard.classList.add("has-value");
+<script>
+  // ── Default records ──────────────────────────────────────────────
+  let records = [
+    { studentId: "IT001", grade: "A" },
+    { studentId: "IT002", grade: "C" },
+    { studentId: "IT003", grade: "A" }
+  ];
 
-          // CID
-          
-          cidOut.className = "card-value populated teal-val";
-          cidCard.classList.add("has-value", "teal-card");
-const link = `https://ipfs.io/ipfs/${data.cid}`;
+  // ── Render table ─────────────────────────────────────────────────
+  function renderTable() {
+    const tbody = document.getElementById("records-body");
+    tbody.innerHTML = "";
+    records.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="row-num">${i + 1}</td>
+        <td><input type="text" value="${r.studentId}" placeholder="e.g. IT004"
+             oninput="updateField(${i}, 'studentId', this.value)" /></td>
+        <td><input type="text" value="${r.grade}" placeholder="A–F"
+             oninput="updateField(${i}, 'grade', this.value)" style="width:80px;" /></td>
+        <td class="actions">
+          <button class="del-btn" onclick="deleteRow(${i})" title="Delete row">✕</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById("row-count").textContent = `${records.length} record${records.length !== 1 ? "s" : ""}`;
+    // Reset results when data changes
+    resetResults();
+  }
 
-cidOut.innerHTML = `
-  ${data.cid}
-  <br/><br/>
-  <a href="${link}" target="_blank" style="color:#4db896; text-decoration: underline;">
-    View on IPFS
-  </a>
-`;
-          // Steps
-          steps.textContent =
-            "✔ Hashing completed\n" +
-            "✔ Merkle root generated\n" +
-            "✔ Data uploaded to IPFS";
-          steps.className = "card-value steps-populated";
+  function updateField(i, key, val) {
+    records[i][key] = val;
+    resetResults();
+  }
 
-          // Input dataset
-          inputData.textContent = JSON.stringify(data.records || "Sample dataset", null, 2);
-          inputData.className = "card-value data-populated";
+  function addRow() {
+    records.push({ studentId: "", grade: "" });
+    renderTable();
+    // Focus the new studentId input
+    const inputs = document.querySelectorAll("#records-body tr:last-child input");
+    if (inputs[0]) inputs[0].focus();
+  }
 
-          okIcon.style.display = "inline";
-          statusText.textContent = "Proof generated successfully";
-          statusText.style.color = "#1D9E75";
-        } else {
-          throw new Error("failure");
-        }
-      } catch (e) {
-        spinner.style.display = "none";
-        errIcon.style.display = "inline";
-        statusText.textContent = "Could not connect to proof server";
-        statusText.style.color = "#E24B4A";
-        merkleOut.textContent = "Awaiting generation…";
-        cidOut.textContent = "Awaiting generation…";
-        steps.textContent = "Awaiting generation…";
-        steps.className = "card-value";
-        inputData.textContent = "Not loaded";
-        inputData.className = "card-value";
+  function deleteRow(i) {
+    if (records.length === 1) return; // keep at least 1
+    records.splice(i, 1);
+    renderTable();
+  }
+
+  function resetResults() {
+    document.getElementById("merkle-out").textContent = "Awaiting generation…";
+    document.getElementById("merkle-out").className = "rc-value";
+    document.getElementById("cid-out").textContent = "Awaiting generation…";
+    document.getElementById("cid-out").className = "rc-value";
+    document.getElementById("merkle-card").classList.remove("lit");
+    document.getElementById("cid-card").classList.remove("lit-green");
+    setStep(0);
+    document.getElementById("status-text").textContent = "";
+  }
+
+  function setStep(n) {
+    for (let i = 1; i <= 3; i++) {
+      const dot = document.getElementById(`d${i}`);
+      const row = document.getElementById(`s${i}`);
+      if (i <= n) {
+        dot.classList.add("done");
+        row.classList.add("done-row");
+      } else {
+        dot.classList.remove("done");
+        row.classList.remove("done-row");
       }
     }
-  </script>
+  }
 
+  // ── Generate proof ────────────────────────────────────────────────
+  async function generateProof() {
+    const spinner = document.getElementById("spinner");
+    const statusText = document.getElementById("status-text");
+
+    // Validate — no empty fields
+    for (let r of records) {
+      if (!r.studentId.trim() || !r.grade.trim()) {
+        statusText.textContent = "⚠ Fill all fields before generating.";
+        statusText.style.color = "#fc8181";
+        return;
+      }
+    }
+
+    spinner.style.display = "block";
+    statusText.style.color = "var(--text-mid)";
+    statusText.textContent = "Processing…";
+    setStep(0);
+
+    // Clean the records (trim whitespace)
+    const cleanRecords = records.map(r => ({
+      studentId: r.studentId.trim(),
+      grade: r.grade.trim()
+    }));
+
+    try {
+      const res = await fetch("/generate-proof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ records: cleanRecords })
+      });
+      const data = await res.json();
+      spinner.style.display = "none";
+
+      if (data.success) {
+        setStep(1);
+        await delay(300);
+        setStep(2);
+        await delay(300);
+        setStep(3);
+
+        document.getElementById("merkle-out").textContent = data.merkleRoot;
+        document.getElementById("merkle-out").className = "rc-value on";
+        document.getElementById("merkle-card").classList.add("lit");
+
+        const link = `https://ipfs.io/ipfs/${data.cid}`;
+        document.getElementById("cid-out").innerHTML =
+          `${data.cid}<br><br><a href="${link}" target="_blank" rel="noopener">View on IPFS ↗</a>`;
+        document.getElementById("cid-out").className = "rc-value on-green";
+        document.getElementById("cid-card").classList.add("lit-green");
+
+        statusText.textContent = "✔ Proof generated";
+        statusText.style.color = "var(--green)";
+      } else {
+        throw new Error("failure");
+      }
+    } catch (e) {
+      spinner.style.display = "none";
+      statusText.textContent = "✕ Could not connect to proof server";
+      statusText.style.color = "var(--red)";
+      setStep(0);
+    }
+  }
+
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  renderTable();
+</script>
 </body>
 </html>

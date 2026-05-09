@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
 
 const { generateHash } = require("./utils/hash");
 const { buildMerkleTree } = require("./utils/merkle");
@@ -10,13 +9,17 @@ const { uploadToIPFS } = require("./utils/ipfs");
 
 const app = express();
 
+app.use(express.json());
 app.use(express.static("public"));
 
-app.get("/generate-proof", async (req, res) => {
+// POST /generate-proof — accepts records from the frontend
+app.post("/generate-proof", async (req, res) => {
   try {
-    const records = JSON.parse(
-      fs.readFileSync("./data/results.json", "utf-8")
-    );
+    const { records } = req.body;
+
+    if (!records || !Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ success: false, error: "No records provided" });
+    }
 
     // Step 1: hash each record
     const hashes = records.map(generateHash);
@@ -36,7 +39,7 @@ app.get("/generate-proof", async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
