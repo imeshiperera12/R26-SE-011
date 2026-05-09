@@ -1,14 +1,72 @@
 const mongoose = require("mongoose");
 
+// =======================================
+// HISTORY SCHEMA
+// =======================================
+
+const historySchema = new mongoose.Schema({
+  version: {
+    type: Number,
+  },
+
+  oldMarks: {
+    type: Number,
+  },
+
+  newMarks: {
+    type: Number,
+  },
+
+  oldGrade: {
+    type: String,
+  },
+
+  newGrade: {
+    type: String,
+  },
+
+  editedBy: {
+    type: String,
+  },
+
+  reason: {
+    type: String,
+  },
+
+  editedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// =======================================
+// RESULT SCHEMA
+// =======================================
+
 const resultSchema = new mongoose.Schema({
-  candidateId: String,
+  candidateId: {
+    type: String,
+    required: true,
+  },
 
-  moduleCode: String,
+  moduleCode: {
+    type: String,
+    required: true,
+  },
 
-  marks: Number,
-  grade: String,
+  marks: {
+    type: Number,
+    required: true,
+  },
 
-  hash: String,
+  grade: {
+    type: String,
+    required: true,
+  },
+
+  hash: {
+    type: String,
+  },
 
   releaseDate: {
     type: Date,
@@ -20,18 +78,7 @@ const resultSchema = new mongoose.Schema({
     default: 1,
   },
 
-  history: [
-    {
-      version: Number,
-      oldMarks: Number,
-      newMarks: Number,
-      oldGrade: String,
-      newGrade: String,
-      editedBy: String,
-      reason: String,
-      editedAt: Date,
-    },
-  ],
+  history: [historySchema],
 
   createdAt: {
     type: Date,
