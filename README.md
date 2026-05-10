@@ -2,9 +2,9 @@
   <img src="./project_banner.png" alt="Grading DApp Banner" width="100%">
 </p>
 
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=2563EB&width=435&lines=Grading+DApp;Secure+Private+Ledger;Institutional+SSO;Immutable+Grading+Records" alt="Typing SVG" />
-</p>
+<div align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=2563EB&width=435&center=true&vCenter=true&lines=Grading+DApp;Secure+Private+Ledger;Institutional+SSO;Immutable+Grading+Records" alt="Typing SVG" />
+</div>
 
 <div align="center">
 
@@ -12,6 +12,9 @@
   [![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](#)
   [![Node.js](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](#)
   [![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)](#)
+  [![Axios](https://img.shields.io/badge/axios-671ddf?style=for-the-badge&logo=axios&logoColor=white)](#)
+  [![Multer](https://img.shields.io/badge/Multer-F9A03C?style=for-the-badge&logo=npm&logoColor=white)](#)
+  [![XLSX](https://img.shields.io/badge/XLSX-00A98F?style=for-the-badge&logo=microsoftexcel&logoColor=white)](#)
 
 </div>
 
@@ -54,7 +57,7 @@ graph TD
 The application is logically divided into three primary components, all located under `component-03-silent-bridge`:
 
 1. 💻 **Frontend (`/frontend`)**
-   - **Tech Stack**: React, Vite, Tailwind CSS, Axios, Ethers.js
+   - **Tech Stack**: React, Vite, Vanilla CSS, Axios
    - **Features**: 
      - User interface for lecturers to securely upload grading sheets.
      - Employer Verification Portal.
