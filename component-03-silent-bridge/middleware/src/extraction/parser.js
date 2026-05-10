@@ -9,19 +9,19 @@ const parseExcelToJson = (fileBuffer) => {
 
         const standardizedData = rawJson.map(row => {
             const keys = Object.keys(row);
-            
+
             // 1. Find the primary Identifier column
             const studentIdKey = keys.find(key => key.toLowerCase().includes('id') || key.toLowerCase().includes('student'));
-            
-            // 2. Define PII keywords to explicitly strip out for Zero-Knowledge privacy
-            const piiKeywords = ['name', 'first', 'last', 'email'];
-            
+
+            // 2. Define keywords to explicitly strip out (PII and non-grade metadata)
+            const excludedKeywords = ['name', 'first', 'last', 'email', 'module', 'semester', 'course', 'year', 'code', 'program', 'degree', 'department', 'faculty', 'intake', 'group'];
+
             // 3. Dynamically harvest ALL remaining columns (Assignments, Labs, Finals)
             const extractedGrades = {};
             keys.forEach(key => {
                 if (key !== studentIdKey) {
-                    const isPII = piiKeywords.some(pii => key.toLowerCase().includes(pii));
-                    if (!isPII) {
+                    const isExcluded = excludedKeywords.some(keyword => key.toLowerCase().includes(keyword));
+                    if (!isExcluded) {
                         extractedGrades[key] = String(row[key]); // Capture the mark
                     }
                 }
