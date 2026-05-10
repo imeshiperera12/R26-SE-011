@@ -11,3 +11,6 @@ build/
 # private ledger database
 private_ledger/database.json
 
+# private ledger folder
+component-03-silent-bridge/private_ledger/
+
