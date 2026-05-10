@@ -1,0 +1,126 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    z-index: 1;
+    position: relative;
+}
+
+.login-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 3rem;
+    border-radius: 24px;
+    box-shadow: var(--card-shadow);
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-card:hover {
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+}
+
+.logo-placeholder {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 15px var(--accent-glow));
+}
+
+.login-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.login-header p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.input-group {
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.sso-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.sso-btn:hover:not(:disabled) {
+    background: var(--accent-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
+
+.sso-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.sso-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+
+.login-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.login-footer small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    display: block;
+    line-height: 1.4;
+}
