@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 const { createVerificationService } = require('./verification-service-clean');
 const { connectMongo, pingMongo } = require('./mongo-verification-store');
 
@@ -336,6 +337,18 @@ async function handleClaimVerification(req, res) {
       sessionToken: req.authToken,
     });
 
+    // An unavailable upstream or missing cryptographic runtime is not an
+    // academic INVALID decision. Preserve the privacy boundary while returning
+    // an operational status that the UI and monitoring can distinguish.
+    if (!result.success && Number(result.status) >= 500) {
+      console.error(`Claim verification unavailable: ${result.code || 'VERIFICATION_SERVICE_ERROR'}`);
+      return res.status(Number(result.status)).json({
+        success: false,
+        error: 'Verification service is temporarily unavailable',
+        code: result.code || 'VERIFICATION_SERVICE_ERROR',
+      });
+    }
+
     // Employer-facing API deliberately reveals the decision only. Detailed
     // cryptographic evidence remains server-side in the MongoDB audit trail.
     return res.status(200).json({
@@ -343,11 +356,12 @@ async function handleClaimVerification(req, res) {
       valid: result.result === 'VALID',
       result: result.result === 'VALID' ? 'VALID' : 'INVALID',
     });
-  } catch (_error) {
-    return res.status(200).json({
-      success: true,
-      valid: false,
-      result: 'INVALID',
+  } catch (error) {
+    console.error(`Claim verification failed unexpectedly: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      error: 'Verification service is temporarily unavailable',
+      code: 'VERIFICATION_SERVICE_ERROR',
     });
   }
 }
@@ -365,6 +379,17 @@ app.post('/api/verify/transcript', requireAuth, requireRole(['admin', 'verifier'
     return res.status(200).json({ success: true, valid: false, result: 'INVALID' });
   }
 });
+
+// In production the backend and the compiled React application share one
+// origin. This keeps browser API calls on /api and avoids a separate CORS and
+// cookie configuration between two cloud services.
+const frontendDist = path.resolve(__dirname, '..', '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get(/^\/(?!api(?:\/|$)).*/, (_req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, error: 'Not found' });
