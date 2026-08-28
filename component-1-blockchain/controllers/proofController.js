@@ -242,15 +242,18 @@ async function upsertProofIndex(
                     record.candidateId,
 
                 moduleCode:
-                    record.moduleCode
+                    record.moduleCode,
+
+                version:
+                    Number(record.version),
+
+                merkleRoot:
+                    merkleRoot
             },
 
             {
 
                 $set: {
-
-                    merkleRoot:
-                        merkleRoot,
 
                     ipfsCID:
                         ipfsCID,
@@ -265,7 +268,13 @@ async function upsertProofIndex(
                         record.candidateId,
 
                     moduleCode:
-                        record.moduleCode
+                        record.moduleCode,
+
+                    version:
+                        Number(record.version),
+
+                    merkleRoot:
+                        merkleRoot
                 }
 
             },
@@ -1138,18 +1147,52 @@ exports.getRecordProofContext =
             const normalizedModuleCode =
                 moduleCode.trim();
 
+            const requestedVersion =
+                req.query?.version;
+
+            const query = {
+
+                candidateId:
+                    normalizedCandidateId,
+
+                moduleCode:
+                    normalizedModuleCode
+            };
+
+
+            if (
+                requestedVersion !== undefined &&
+                requestedVersion !== ""
+            ) {
+
+                const parsedVersion =
+                    Number(requestedVersion);
+
+
+                if (
+                    !Number.isInteger(parsedVersion) ||
+                    parsedVersion < 0
+                ) {
+
+                    return res.status(400).json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Version must be a non-negative integer."
+                    });
+                }
+
+
+                query.version =
+                    parsedVersion;
+            }
+
 
             const indexEntry =
                 await ResultProofIndex
-                    .findOne({
-
-                        candidateId:
-                            normalizedCandidateId,
-
-                        moduleCode:
-                            normalizedModuleCode
-
-                    })
+                    .findOne(query)
                     .sort({
 
                         anchoredAt:
@@ -1192,6 +1235,9 @@ exports.getRecordProofContext =
 
                     moduleCode:
                         indexEntry.moduleCode,
+
+                    version:
+                        indexEntry.version,
 
                     merkleRoot:
                         indexEntry.merkleRoot,
@@ -1960,6 +2006,114 @@ exports.getStudentMerkleProof =
 
                 error:
                     error.message
+            });
+        }
+    };
+
+
+// =====================================================
+// GET ALL HISTORICAL PROOF CONTEXTS FOR A CANDIDATE
+// =====================================================
+
+exports.getCandidateProofContexts =
+    async (req, res) => {
+
+        try {
+
+            const candidateId =
+                req.params.candidateId?.trim();
+
+
+            if (!candidateId) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Candidate ID is required."
+                });
+            }
+
+
+            const indexEntries =
+                await ResultProofIndex
+                    .find({ candidateId })
+                    .sort({
+
+                        moduleCode:
+                            1,
+
+                        version:
+                            1,
+
+                        anchoredAt:
+                            1
+                    })
+                    .lean();
+
+
+            if (!indexEntries.length) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "No anchored proof history found for this candidate.",
+
+                    candidateId
+                });
+            }
+
+
+            return res.status(200).json({
+
+                success:
+                    true,
+
+                candidateId,
+
+                records:
+                    indexEntries.map((entry) => ({
+
+                        candidateId:
+                            entry.candidateId,
+
+                        moduleCode:
+                            entry.moduleCode,
+
+                        version:
+                            entry.version,
+
+                        merkleRoot:
+                            entry.merkleRoot,
+
+                        ipfsCID:
+                            entry.ipfsCID,
+
+                        anchoredAt:
+                            entry.anchoredAt
+                    }))
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Candidate proof history lookup error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to retrieve candidate proof history."
             });
         }
     };

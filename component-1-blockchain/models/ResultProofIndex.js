@@ -16,6 +16,15 @@ const resultProofIndexSchema = new mongoose.Schema(
             index: true
         },
 
+        // Optional for backward compatibility with proof-index documents
+        // created before historical versioning was introduced. Every new
+        // finalized record is indexed with its explicit academic version.
+        version: {
+            type: Number,
+            min: 0,
+            index: true
+        },
+
         merkleRoot: {
             type: String,
             required: true,
@@ -45,17 +54,21 @@ const resultProofIndexSchema = new mongoose.Schema(
 // LOOKUP INDEX
 // =====================================================
 //
-// Candidate + module are used to find the proof context.
-// If the same candidate/module appears in a later
-// anchored dataset, the newest anchoredAt value is used.
-//
-// Version is intentionally NOT stored here.
+// Preserve every finalized candidate/module/version/root context. This is an
+// append-only lookup index over immutable blockchain/IPFS evidence; repeated
+// ingestion of the same root remains idempotent.
 // =====================================================
 
 resultProofIndexSchema.index({
     candidateId: 1,
     moduleCode: 1,
-    anchoredAt: -1
+    version: 1,
+    merkleRoot: 1
+}, {
+    unique: true,
+    partialFilterExpression: {
+        version: { $type: "number" }
+    }
 });
 
 

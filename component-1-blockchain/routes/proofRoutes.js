@@ -86,6 +86,14 @@ router.get(
 );
 
 
+// Returns every immutable candidate/module/version proof context so Component
+// 4 can validate a full transcript across historical blockchain anchors.
+router.get(
+    "/proof/records/:candidateId",
+    proofController.getCandidateProofContexts
+);
+
+
 // =====================================================
 // READ BLOCKCHAIN PROOF BY MERKLE ROOT
 // =====================================================
