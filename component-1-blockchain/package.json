@@ -7,9 +7,8 @@
   },
   "scripts": {
     "start": "node scripts/railway-start.js",
-    "test": "node tests/hash.test.js && node --test tests/proofIndex.test.js",
-    "test:merkle": "node tests/merkle.test.js",
-    "backfill:proof-index": "node scripts/backfill-proof-index.js"
+    "test": "node tests/hash.test.js",
+    "test:merkle": "node tests/merkle.test.js"
   },
   "repository": {
     "type": "git",
