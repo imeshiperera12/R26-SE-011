@@ -152,6 +152,13 @@ function Dashboard() {
             </div>
           </div>
 
+          <button
+            className="finalized-results-btn"
+            onClick={() => navigate("/finalized-results")}
+          >
+            Finalized Results
+          </button>
+
           <button className="logout-btn" onClick={handleLogout}>
             <svg
               width="15"
