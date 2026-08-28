@@ -1,12 +1,22 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { getFinalizedResults } from "../services/finalResultService";
 
+import "./FinalizedResults.css";
+
 const FinalizedResults = () => {
+  const navigate = useNavigate();
+
   const [results, setResults] = useState([]);
   const [search, setSearch] = useState("");
   const [moduleFilter, setModuleFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ==========================================
+  // LOAD FINALIZED RESULTS
+  // ==========================================
 
   const loadResults = async () => {
     try {
@@ -31,29 +41,47 @@ const FinalizedResults = () => {
     loadResults();
   }, []);
 
-  // Get unique modules
+  // ==========================================
+  // GET UNIQUE MODULES
+  // ==========================================
+
   const modules = useMemo(() => {
     return [...new Set(results.map((result) => result.moduleCode))].sort();
   }, [results]);
 
-  // Search + module filtering
+  // ==========================================
+  // FILTER RESULTS
+  // ==========================================
+
   const filteredResults = useMemo(() => {
     return results.filter((result) => {
-      const matchesStudent = result.candidateId
-        ?.toLowerCase()
-        .includes(search.toLowerCase());
+      const candidateId = result.candidateId?.toString().toLowerCase() || "";
 
-      const matchesModule = !moduleFilter || result.moduleCode === moduleFilter;
+      const moduleCode = result.moduleCode?.toString() || "";
+
+      const searchValue = search.toLowerCase();
+
+      const matchesStudent = candidateId.includes(searchValue);
+
+      const matchesModule = !moduleFilter || moduleCode === moduleFilter;
 
       return matchesStudent && matchesModule;
     });
   }, [results, search, moduleFilter]);
+
+  // ==========================================
+  // FORMAT DATE
+  // ==========================================
 
   const formatDate = (date) => {
     if (!date) return "-";
 
     return new Date(date).toLocaleString();
   };
+
+  // ==========================================
+  // STATUS CLASS
+  // ==========================================
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -67,155 +95,298 @@ const FinalizedResults = () => {
         return "status-pending";
 
       default:
-        return "";
+        return "status-default";
     }
   };
 
+  // ==========================================
+  // DASHBOARD
+  // ==========================================
+
   return (
-    <div style={{ padding: "30px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "25px",
-        }}
-      >
-        <div>
-          <h1>Finalized Results</h1>
+    <div className="finalized-page">
+      {/* ======================================
+          HEADER
+          ====================================== */}
 
-          <p>View finalized student results and blockchain status.</p>
-        </div>
+      <header className="finalized-header">
+        <div className="finalized-header__content">
+          <div className="finalized-header__info">
+            <button
+              className="finalized-back-btn"
+              onClick={() => navigate("/dashboard")}
+              title="Back to Dashboard"
+            >
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+            </button>
 
-        <button onClick={loadResults}>Refresh</button>
-      </div>
+            <div className="finalized-title-block">
+              <span className="finalized-eyebrow">BOE RECORDS</span>
 
-      {/* Filters */}
-      <div
-        style={{
-          display: "flex",
-          gap: "15px",
-          marginBottom: "25px",
-          flexWrap: "wrap",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Search Student ID"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: "10px",
-            minWidth: "250px",
-          }}
-        />
+              <h1>Finalized Results</h1>
 
-        <select
-          value={moduleFilter}
-          onChange={(e) => setModuleFilter(e.target.value)}
-          style={{
-            padding: "10px",
-          }}
-        >
-          <option value="">All Modules</option>
+              <p>View finalized student results and blockchain status.</p>
+            </div>
+          </div>
 
-          {modules.map((module) => (
-            <option key={module} value={module}>
-              {module}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Loading */}
-      {loading && <p>Loading finalized results...</p>}
-
-      {/* Error */}
-      {!loading && error && (
-        <div>
-          <p>{error}</p>
-
-          <button onClick={loadResults}>Try Again</button>
-        </div>
-      )}
-
-      {/* Results */}
-      {!loading && !error && (
-        <>
-          <p>Showing {filteredResults.length} finalized result(s)</p>
-
-          <div
-            style={{
-              overflowX: "auto",
-            }}
+          <button
+            className="refresh-btn"
+            onClick={loadResults}
+            disabled={loading}
           >
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                marginTop: "15px",
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10" />
+              <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14" />
+            </svg>
+
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+      </header>
+
+      {/* ======================================
+          MAIN CONTENT
+          ====================================== */}
+
+      <main className="finalized-content">
+        {/* ==================================
+            PAGE INTRO
+            ================================== */}
+
+        <section className="finalized-intro">
+          <div>
+            <span className="finalized-intro__eyebrow">FINALIZED RECORDS</span>
+
+            <h2>Academic Results Archive</h2>
+
+            <p>
+              Browse results that have completed the BOE review and finalization
+              process.
+            </p>
+          </div>
+
+          <div className="result-count-card">
+            <span>Total Finalized</span>
+
+            <strong>{results.length}</strong>
+
+            <small>RESULTS</small>
+          </div>
+        </section>
+
+        {/* ==================================
+            FILTERS
+            ================================== */}
+
+        <section className="results-controls">
+          <div className="search-wrapper">
+            <svg
+              className="search-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line x1="16" y1="16" x2="21" y2="21" />
+            </svg>
+
+            <input
+              type="text"
+              placeholder="Search Student ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="filter-wrapper">
+            <span className="filter-label">MODULE</span>
+
+            <select
+              value={moduleFilter}
+              onChange={(e) => setModuleFilter(e.target.value)}
+            >
+              <option value="">All Modules</option>
+
+              {modules.map((module) => (
+                <option key={module} value={module}>
+                  {module}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {(search || moduleFilter) && (
+            <button
+              className="clear-filter-btn"
+              onClick={() => {
+                setSearch("");
+                setModuleFilter("");
               }}
             >
-              <thead>
-                <tr>
-                  <th>Student ID</th>
-                  <th>Module</th>
-                  <th>Marks</th>
-                  <th>Grade</th>
-                  <th>Version</th>
-                  <th>Finalized At</th>
-                  <th>Blockchain Status</th>
-                  <th>Blockchain Eligible At</th>
-                </tr>
-              </thead>
+              Clear Filters
+            </button>
+          )}
+        </section>
 
-              <tbody>
-                {filteredResults.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan="8"
-                      style={{
-                        textAlign: "center",
-                        padding: "30px",
-                      }}
-                    >
-                      No finalized results found.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredResults.map((result) => (
-                    <tr key={`${result.candidateId}-${result.moduleCode}`}>
-                      <td>{result.candidateId}</td>
+        {/* ==================================
+            LOADING
+            ================================== */}
 
-                      <td>{result.moduleCode}</td>
+        {loading && (
+          <div className="results-state">
+            <div className="results-spinner" />
 
-                      <td>{result.marks}</td>
-
-                      <td>
-                        <strong>{result.grade}</strong>
-                      </td>
-
-                      <td>v{result.version}</td>
-
-                      <td>{formatDate(result.finalizedAt)}</td>
-
-                      <td>
-                        <span
-                          className={getStatusClass(result.blockchainStatus)}
-                        >
-                          {result.blockchainStatus}
-                        </span>
-                      </td>
-
-                      <td>{formatDate(result.blockchainEligibleAt)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <p>Loading finalized results...</p>
           </div>
-        </>
-      )}
+        )}
+
+        {/* ==================================
+            ERROR
+            ================================== */}
+
+        {!loading && error && (
+          <div className="results-error">
+            <div className="error-icon">!</div>
+
+            <div>
+              <h3>Unable to load results</h3>
+
+              <p>{error}</p>
+
+              <button onClick={loadResults}>Try Again</button>
+            </div>
+          </div>
+        )}
+
+        {/* ==================================
+            RESULTS
+            ================================== */}
+
+        {!loading && !error && (
+          <section className="results-section">
+            <div className="results-section__header">
+              <div>
+                <h3>Finalized Student Results</h3>
+
+                <p>
+                  Showing <strong>{filteredResults.length}</strong> of{" "}
+                  <strong>{results.length}</strong> finalized result(s)
+                </p>
+              </div>
+
+              <div className="records-indicator">
+                <span />
+                FINALIZED RECORDS
+              </div>
+            </div>
+
+            <div className="table-container">
+              <table className="results-table">
+                <thead>
+                  <tr>
+                    <th>Student ID</th>
+                    <th>Module</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>Version</th>
+                    <th>Finalized At</th>
+                    <th>Blockchain Status</th>
+                    <th>Blockchain Eligible At</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredResults.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="empty-results">
+                        <div className="empty-icon">∅</div>
+
+                        <strong>No finalized results found</strong>
+
+                        <span>Try changing your search or module filter.</span>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredResults.map((result) => (
+                      <tr key={`${result.candidateId}-${result.moduleCode}`}>
+                        <td>
+                          <span className="student-id">
+                            {result.candidateId}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="module-code">
+                            {result.moduleCode}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="marks">{result.marks}</span>
+                        </td>
+
+                        <td>
+                          <span className="grade">{result.grade}</span>
+                        </td>
+
+                        <td>
+                          <span className="version">v{result.version}</span>
+                        </td>
+
+                        <td>
+                          <span className="date-value">
+                            {formatDate(result.finalizedAt)}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span
+                            className={`blockchain-status ${getStatusClass(
+                              result.blockchainStatus,
+                            )}`}
+                          >
+                            <span className="status-dot" />
+
+                            {result.blockchainStatus || "UNKNOWN"}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="date-value">
+                            {formatDate(result.blockchainEligibleAt)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+      </main>
     </div>
   );
 };
