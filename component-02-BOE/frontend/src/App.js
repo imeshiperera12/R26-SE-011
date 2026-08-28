@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
-
 import Dashboard from "./pages/Dashboard";
+import FinalizedResults from "./pages/FinalizedResults";
 
 import { isAuthenticated } from "./utils/auth";
 
@@ -18,8 +18,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Login */}
         <Route path="/login" element={<Login />} />
 
+        {/* BOE Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -29,6 +31,17 @@ function App() {
           }
         />
 
+        {/* Finalized Results */}
+        <Route
+          path="/finalized-results"
+          element={
+            <ProtectedRoute>
+              <FinalizedResults />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Unknown routes */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

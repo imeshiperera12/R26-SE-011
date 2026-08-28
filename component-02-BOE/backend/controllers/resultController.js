@@ -1,5 +1,6 @@
 const { checkModuleAccess } = require("../services/moduleAccessService");
 const Result = require("../models/Result");
+const FinalResult = require("../models/FinalResult");
 
 // =======================================
 // AUTOMATIC GRADE GENERATION
@@ -220,6 +221,34 @@ exports.editResult = async (req, res) => {
 
     res.status(500).json({
       error: "Server error",
+    });
+  }
+};
+
+// =======================================
+// GET ALL FINALIZED RESULTS
+// =======================================
+
+exports.getFinalizedResults = async (req, res) => {
+  try {
+    const results = await FinalResult.find({})
+      .sort({
+        finalizedAt: -1,
+        candidateId: 1,
+      })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      count: results.length,
+      results,
+    });
+  } catch (error) {
+    console.error("❌ Get finalized results error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch finalized results.",
     });
   }
 };

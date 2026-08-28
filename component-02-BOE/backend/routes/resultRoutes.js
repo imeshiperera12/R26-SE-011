@@ -6,6 +6,7 @@ const {
   getResultsByModule,
   getCandidateById,
   editResult,
+  getFinalizedResults,
 } = require("../controllers/resultController");
 const { authenticateUser } = require("../middleware/authMiddleware");
 
@@ -26,5 +27,12 @@ router.get(
 );
 
 router.post("/edit", authenticateUser, authorizeBOA, editResult);
+
+router.get(
+  "/final-results",
+  authenticateUser,
+  authorizeBOA,
+  getFinalizedResults,
+);
 
 module.exports = router;
