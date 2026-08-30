@@ -16,11 +16,18 @@ function CandidateSearch({ module }) {
     try {
       setLoading(true);
       setError("");
-      const response = await api.get(`/candidate/${id}`);
+
+      const response = await api.get(`/candidate/${moduleCode}/${id}`);
+
       setCandidateData(response.data);
-    } catch {
+    } catch (error) {
       setCandidateData(null);
-      setError("No candidate record found for this ID.");
+
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("No candidate record found for this ID.");
+      }
     } finally {
       setLoading(false);
     }

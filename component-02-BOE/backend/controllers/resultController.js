@@ -69,38 +69,42 @@ exports.getResultsByModule = async (req, res) => {
 };
 
 // =======================================
-// GET CANDIDATE BY ID
+// GET CANDIDATE BY MODULE AND ID
 // =======================================
 
 exports.getCandidateById = async (req, res) => {
   try {
-    const candidateId = req.params.candidateId;
-
-    const result = await Result.findOne({
-      candidateId,
-      isRecorrection: false,
-    });
-
-    if (!result) {
-      return res.status(404).json({
-        message: "Candidate not found",
-      });
-    }
+    const moduleCode = req.params.moduleCode.trim().toUpperCase();
+    const candidateId = req.params.candidateId.trim();
 
     // MODULE ASSIGNMENT CHECK
-    if (!req.user.assignedModules.includes(result.moduleCode)) {
+    if (!req.user.assignedModules.includes(moduleCode)) {
       return res.status(403).json({
         message: "Access denied.",
       });
     }
 
     // MODULE REVIEW STATUS CHECK
-    const access = await checkModuleAccess(result.moduleCode);
+    const access = await checkModuleAccess(moduleCode);
 
     if (!access.allowed) {
       return res.status(403).json({
         message: "BOE review period for this module has ended.",
         status: access.status.status,
+      });
+    }
+
+    // FIND CANDIDATE USING BOTH MODULE CODE AND CANDIDATE ID
+    const result = await Result.findOne({
+      candidateId,
+      moduleCode,
+      isRecorrection: false,
+      finalized: false,
+    });
+
+    if (!result) {
+      return res.status(404).json({
+        message: "Candidate record not found for this module.",
       });
     }
 

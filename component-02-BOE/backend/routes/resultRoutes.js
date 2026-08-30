@@ -20,7 +20,7 @@ router.get(
 );
 
 router.get(
-  "/candidate/:candidateId",
+  "/candidate/:moduleCode/:candidateId",
   authenticateUser,
   authorizeBOA,
   getCandidateById,

@@ -458,7 +458,10 @@ function Dashboard() {
                 CANDIDATE SEARCH
                 ================================== */}
 
-            <CandidateSearch module={selectedModule} />
+            <CandidateSearch
+              key={selectedModule.moduleCode}
+              module={selectedModule}
+            />
           </>
         )}
       </main>
