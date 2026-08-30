@@ -45,7 +45,7 @@ const CONTRACT_ABI =
 // RPC_URL=http://127.0.0.1:8545
 // CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
 //
-// PRODUCTION:
+// PRODUCTION / REMOTE:
 // RPC_URL=<persistent RPC>
 // CONTRACT_ADDRESS=<deployed ProofStorage address>
 //
@@ -61,6 +61,7 @@ const BLOCKCHAIN_RPC_URL =
 const DEPLOYER_PRIVATE_KEY =
     process.env.DEPLOYER_PRIVATE_KEY ||
     process.env.PRIVATE_KEY;
+
 
 if (!CONTRACT_ADDRESS) {
 
@@ -114,9 +115,150 @@ function normalizeMerkleRoot(root) {
         return null;
     }
 
+
     return root.startsWith("0x")
         ? root
         : `0x${root}`;
+}
+
+
+// =====================================================
+// CREATE BLOCKCHAIN PROVIDER
+// =====================================================
+
+function createBlockchainProvider() {
+
+    return new ethers.JsonRpcProvider(
+        BLOCKCHAIN_RPC_URL
+    );
+}
+
+
+// =====================================================
+// CREATE READ-ONLY PROOF STORAGE CONTRACT
+// =====================================================
+
+async function getReadOnlyProofStorageContract(
+    provider
+) {
+
+    if (!CONTRACT_ADDRESS) {
+
+        throw new Error(
+            "CONTRACT_ADDRESS is missing from environment variables."
+        );
+    }
+
+
+    const contractCode =
+        await provider.getCode(
+            CONTRACT_ADDRESS
+        );
+
+
+    if (
+        contractCode === "0x"
+    ) {
+
+        throw new Error(
+            `No smart contract deployed at ${CONTRACT_ADDRESS} on ${BLOCKCHAIN_RPC_URL}`
+        );
+    }
+
+
+    return new ethers.Contract(
+        CONTRACT_ADDRESS,
+        CONTRACT_ABI,
+        provider
+    );
+}
+
+
+// =====================================================
+// LOAD IPFS DATA FOR AN ANCHORED ROOT
+// =====================================================
+
+async function loadAnchoredIPFSData(
+    proofStorageContract,
+    merkleRoot
+) {
+
+    const blockchainProof =
+        await proofStorageContract.getProof(
+            merkleRoot
+        );
+
+
+    const ipfsCID =
+        blockchainProof[0];
+
+    const timestamp =
+        blockchainProof[1];
+
+    const uploadedBy =
+        blockchainProof[2];
+
+
+    if (
+        !ipfsCID ||
+        timestamp === undefined ||
+        timestamp === null ||
+        timestamp === 0n
+    ) {
+
+        throw new Error(
+            "Blockchain proof exists but contains invalid proof metadata."
+        );
+    }
+
+
+    const ipfsData =
+        await getFromIPFS(
+            ipfsCID
+        );
+
+
+    if (
+        !ipfsData ||
+        !ipfsData.merkleRoot
+    ) {
+
+        throw new Error(
+            "IPFS dataset does not contain a Merkle Root."
+        );
+    }
+
+
+    let normalizedIPFSRoot =
+        ipfsData.merkleRoot;
+
+
+    if (
+        !normalizedIPFSRoot.startsWith("0x")
+    ) {
+
+        normalizedIPFSRoot =
+            `0x${normalizedIPFSRoot}`;
+    }
+
+
+    return {
+
+        blockchainProof: {
+
+            ipfsCID,
+
+            timestamp,
+
+            uploadedBy
+
+        },
+
+        ipfsData,
+
+        normalizedIPFSRoot
+
+    };
 }
 
 
@@ -136,6 +278,7 @@ async function getExistingAnchoredProof(
             await proofStorageContract.getProof(
                 merkleRoot
             );
+
 
         const ipfsCID =
             proof[0];
@@ -168,6 +311,7 @@ async function getExistingAnchoredProof(
             timestamp,
 
             uploadedBy
+
         };
 
     } catch (error) {
@@ -193,10 +337,21 @@ async function getExistingAnchoredProof(
         }
 
 
-        const serialized =
-            JSON.stringify(
-                error
-            );
+        let serialized = "";
+
+        try {
+
+            serialized =
+                JSON.stringify(
+                    error
+                );
+
+        } catch (_) {
+
+            serialized =
+                String(error);
+
+        }
 
 
         if (
@@ -219,6 +374,15 @@ async function getExistingAnchoredProof(
 // =====================================================
 // UPSERT PROOF INDEX
 // =====================================================
+//
+// IMPORTANT:
+// The Merkle Root is part of the lookup key.
+//
+// This allows the same candidate/module to appear in
+// multiple historical finalized datasets without
+// overwriting the previous proof context.
+//
+// =====================================================
 
 async function upsertProofIndex(
     finalizedRecords,
@@ -227,7 +391,8 @@ async function upsertProofIndex(
     anchoredAt
 ) {
 
-    let storedCount = 0;
+    let storedCount =
+        0;
 
 
     for (
@@ -238,25 +403,28 @@ async function upsertProofIndex(
         await ResultProofIndex.updateOne(
 
             {
+
                 candidateId:
                     record.candidateId,
 
                 moduleCode:
-                    record.moduleCode
+                    record.moduleCode,
+
+                merkleRoot:
+                    merkleRoot
+
             },
 
             {
 
                 $set: {
 
-                    merkleRoot:
-                        merkleRoot,
-
                     ipfsCID:
                         ipfsCID,
 
                     anchoredAt:
                         anchoredAt
+
                 },
 
                 $setOnInsert: {
@@ -265,22 +433,380 @@ async function upsertProofIndex(
                         record.candidateId,
 
                     moduleCode:
-                        record.moduleCode
+                        record.moduleCode,
+
+                    merkleRoot:
+                        merkleRoot
+
                 }
 
             },
 
             {
-                upsert: true
+                upsert:
+                    true
             }
+
         );
 
 
         storedCount++;
+
     }
 
 
     return storedCount;
+}
+
+
+// =====================================================
+// PERFORM ANCHOR INTEGRITY CHECK
+// =====================================================
+//
+// Checks:
+//
+// 1. Blockchain proof exists.
+// 2. IPFS dataset exists.
+// 3. Blockchain Root == IPFS Root.
+// 4. Every finalized record hash is correct.
+// 5. Rebuilt Merkle Root == blockchain Root.
+// 6. Proof Index contains all records for the anchor.
+//
+// =====================================================
+
+async function performAnchorIntegrityCheck(
+    merkleRoot
+) {
+
+    const formattedMerkleRoot =
+        normalizeMerkleRoot(
+            merkleRoot
+        );
+
+
+    if (
+        !formattedMerkleRoot ||
+        !/^0x[a-fA-F0-9]{64}$/.test(
+            formattedMerkleRoot
+        )
+    ) {
+
+        throw new Error(
+            "Invalid Merkle Root format."
+        );
+    }
+
+
+    const provider =
+        createBlockchainProvider();
+
+
+    const proofStorageContract =
+        await getReadOnlyProofStorageContract(
+            provider
+        );
+
+
+    // =================================================
+    // LOAD BLOCKCHAIN + IPFS EVIDENCE
+    // =================================================
+
+    const {
+
+        blockchainProof,
+
+        ipfsData,
+
+        normalizedIPFSRoot
+
+    } =
+        await loadAnchoredIPFSData(
+
+            proofStorageContract,
+
+            formattedMerkleRoot
+
+        );
+
+
+    // =================================================
+    // BLOCKCHAIN ↔ IPFS ROOT
+    // =================================================
+
+    const blockchainRootMatch =
+        formattedMerkleRoot.toLowerCase() ===
+        normalizedIPFSRoot.toLowerCase();
+
+
+    // =================================================
+    // FINALIZED RECORDS
+    // =================================================
+
+    const records =
+        ipfsData.recordsWithHashes;
+
+
+    if (
+        !Array.isArray(records)
+    ) {
+
+        throw new Error(
+            "IPFS dataset does not contain a valid finalized record list."
+        );
+    }
+
+
+    // =================================================
+    // SHA-256 VALIDATION
+    // =================================================
+
+    const hashResults =
+        records.map(
+            (record) => {
+
+                const expectedHash =
+                    verifyComponent2Hash(
+                        record
+                    );
+
+
+                return {
+
+                    candidateId:
+                        record.candidateId,
+
+                    moduleCode:
+                        record.moduleCode,
+
+                    expectedHash:
+                        expectedHash,
+
+                    storedHash:
+                        record.hash,
+
+                    matches:
+                        expectedHash.toLowerCase() ===
+                        String(
+                            record.hash
+                        ).toLowerCase()
+
+                };
+
+            }
+        );
+
+
+    const invalidHashCount =
+        hashResults.filter(
+            (result) =>
+                !result.matches
+        ).length;
+
+
+    const allHashesMatch =
+        invalidHashCount === 0;
+
+
+    // =================================================
+    // MERKLE VALIDATION
+    // =================================================
+
+    const leafHashes =
+        records.map(
+            (record) =>
+                record.hash
+        );
+
+
+    const rebuiltMerkleRoot =
+        normalizeMerkleRoot(
+            buildMerkleTree(
+                leafHashes
+            )
+        );
+
+
+    const merkleRootMatch =
+        rebuiltMerkleRoot &&
+        rebuiltMerkleRoot.toLowerCase() ===
+        formattedMerkleRoot.toLowerCase();
+
+
+    // =================================================
+    // PROOF INDEX VALIDATION
+    // =================================================
+
+    const proofIndexCount =
+        await ResultProofIndex.countDocuments({
+
+            merkleRoot:
+                formattedMerkleRoot
+
+        });
+
+
+    const proofIndexMatch =
+        proofIndexCount ===
+        records.length;
+
+
+    // =================================================
+    // FINAL RESULT
+    // =================================================
+
+    const blockchainVerified =
+        true;
+
+
+    const ipfsVerified =
+        blockchainRootMatch;
+
+
+    const merkleVerified =
+        Boolean(
+            merkleRootMatch
+        );
+
+
+    const hashVerified =
+        allHashesMatch;
+
+
+    const proofIndexVerified =
+        proofIndexMatch;
+
+
+    const verified =
+        blockchainVerified &&
+        ipfsVerified &&
+        merkleVerified &&
+        hashVerified &&
+        proofIndexVerified;
+
+
+    return {
+
+        verified,
+
+        merkleRoot:
+            formattedMerkleRoot,
+
+        ipfsCID:
+            blockchainProof.ipfsCID,
+
+        timestamp:
+            blockchainProof.timestamp.toString(),
+
+        uploadedBy:
+            blockchainProof.uploadedBy,
+
+        totalRecords:
+            records.length,
+
+        checks: {
+
+            blockchain: {
+
+                passed:
+                    blockchainVerified,
+
+                status:
+                    "PASS",
+
+                message:
+                    "Blockchain proof exists for this Merkle Root."
+
+            },
+
+
+            ipfs: {
+
+                passed:
+                    ipfsVerified,
+
+                status:
+                    ipfsVerified
+                        ? "PASS"
+                        : "FAIL",
+
+                message:
+                    ipfsVerified
+                        ? "IPFS Merkle Root matches blockchain."
+                        : "IPFS Merkle Root does not match blockchain.",
+
+                ipfsMerkleRoot:
+                    normalizedIPFSRoot
+
+            },
+
+
+            sha256: {
+
+                passed:
+                    hashVerified,
+
+                status:
+                    hashVerified
+                        ? "PASS"
+                        : "FAIL",
+
+                message:
+                    hashVerified
+                        ? "All finalized record hashes match."
+                        : `${invalidHashCount} record hash(es) failed validation.`,
+
+                invalidHashCount
+
+            },
+
+
+            merkle: {
+
+                passed:
+                    merkleVerified,
+
+                status:
+                    merkleVerified
+                        ? "PASS"
+                        : "FAIL",
+
+                message:
+                    merkleVerified
+                        ? "Rebuilt Merkle Root matches blockchain."
+                        : "Rebuilt Merkle Root does not match blockchain.",
+
+                rebuiltMerkleRoot:
+                    rebuiltMerkleRoot
+
+            },
+
+
+            proofIndex: {
+
+                passed:
+                    proofIndexVerified,
+
+                status:
+                    proofIndexVerified
+                        ? "PASS"
+                        : "FAIL",
+
+                message:
+                    proofIndexVerified
+                        ? "Proof index contains all records for this anchor."
+                        : "Proof index count does not match the finalized dataset.",
+
+                indexedRecords:
+                    proofIndexCount,
+
+                datasetRecords:
+                    records.length
+
+            }
+
+        }
+
+    };
 }
 
 
@@ -300,7 +826,8 @@ exports.generateProofManifest =
 
             const {
                 records
-            } = req.body;
+            } =
+                req.body;
 
 
             // =================================================
@@ -319,6 +846,7 @@ exports.generateProofManifest =
 
                     message:
                         "Payload missing valid academic records array."
+
                 });
             }
 
@@ -389,6 +917,7 @@ exports.generateProofManifest =
 
                             hash:
                                 record.hash
+
                         };
 
                     }
@@ -426,6 +955,7 @@ exports.generateProofManifest =
 
                     message:
                         "Merkle Root generation failed."
+
                 });
             }
 
@@ -455,7 +985,9 @@ exports.generateProofManifest =
             );
 
 
-            if (!CONTRACT_ADDRESS) {
+            if (
+                !CONTRACT_ADDRESS
+            ) {
 
                 throw new Error(
                     "CONTRACT_ADDRESS is missing from environment variables."
@@ -464,9 +996,7 @@ exports.generateProofManifest =
 
 
             const provider =
-                new ethers.JsonRpcProvider(
-                    BLOCKCHAIN_RPC_URL
-                );
+                createBlockchainProvider();
 
 
             // =================================================
@@ -522,13 +1052,16 @@ exports.generateProofManifest =
             ) {
 
                 signer =
-                    await provider.getSigner(0);
+                    await provider.getSigner(
+                        0
+                    );
 
             } else {
 
                 throw new Error(
                     "DEPLOYER_PRIVATE_KEY or PRIVATE_KEY is required when using a remote blockchain RPC."
                 );
+
             }
 
 
@@ -595,8 +1128,10 @@ exports.generateProofManifest =
                 let proofIndexReady =
                     true;
 
+
                 let proofIndexError =
                     null;
+
 
                 let indexRecordsStored =
                     0;
@@ -606,10 +1141,15 @@ exports.generateProofManifest =
 
                     indexRecordsStored =
                         await upsertProofIndex(
+
                             finalizedRecords,
+
                             formattedMerkleRoot,
+
                             existingCID,
+
                             existingAnchoredAt
+
                         );
 
 
@@ -622,6 +1162,7 @@ exports.generateProofManifest =
                     proofIndexReady =
                         false;
 
+
                     proofIndexError =
                         indexError.message;
 
@@ -630,6 +1171,7 @@ exports.generateProofManifest =
                         "Existing blockchain proof reused, but Proof Index update failed:",
                         indexError.message
                     );
+
                 }
 
 
@@ -657,6 +1199,7 @@ exports.generateProofManifest =
 
                         anchoredBy:
                             existingProof.uploadedBy
+
                     },
 
                     proofData: {
@@ -684,6 +1227,7 @@ exports.generateProofManifest =
 
                         proofIndexError:
                             proofIndexError
+
                     }
 
                 });
@@ -717,6 +1261,7 @@ exports.generateProofManifest =
 
                 generatedAt:
                     new Date().toISOString()
+
             };
 
 
@@ -788,8 +1333,10 @@ exports.generateProofManifest =
             let proofIndexReady =
                 true;
 
+
             let proofIndexError =
                 null;
+
 
             let indexRecordsStored =
                 0;
@@ -799,10 +1346,15 @@ exports.generateProofManifest =
 
                 indexRecordsStored =
                     await upsertProofIndex(
+
                         finalizedRecords,
+
                         formattedMerkleRoot,
+
                         ipfsCID,
+
                         anchoredAt
+
                     );
 
 
@@ -815,6 +1367,7 @@ exports.generateProofManifest =
                 proofIndexReady =
                     false;
 
+
                 proofIndexError =
                     indexError.message;
 
@@ -823,6 +1376,7 @@ exports.generateProofManifest =
                     "Blockchain anchor succeeded, but Proof Index update failed:",
                     indexError.message
                 );
+
             }
 
 
@@ -850,6 +1404,7 @@ exports.generateProofManifest =
 
                     anchoredBy:
                         receipt.from
+
                 },
 
                 proofData: {
@@ -877,6 +1432,7 @@ exports.generateProofManifest =
 
                     proofIndexError:
                         proofIndexError
+
                 }
 
             });
@@ -899,8 +1455,11 @@ exports.generateProofManifest =
 
                 error:
                     error.message
+
             });
+
         }
+
     };
 
 
@@ -927,9 +1486,7 @@ exports.getLatestProof =
 
 
             const provider =
-                new ethers.JsonRpcProvider(
-                    BLOCKCHAIN_RPC_URL
-                );
+                createBlockchainProvider();
 
 
             const contractCode =
@@ -980,7 +1537,9 @@ exports.getLatestProof =
 
                     message:
                         "No latest anchored proof is available."
+
                 });
+
             }
 
 
@@ -1036,6 +1595,7 @@ exports.getLatestProof =
 
                     timestamp =
                         block.timestamp;
+
                 }
 
             } catch (timestampError) {
@@ -1044,6 +1604,7 @@ exports.getLatestProof =
                     "Unable to read anchor block timestamp:",
                     timestampError.message
                 );
+
             }
 
 
@@ -1073,6 +1634,7 @@ exports.getLatestProof =
 
                     transactionHash:
                         latestEvent.transactionHash
+
                 }
 
             });
@@ -1095,8 +1657,486 @@ exports.getLatestProof =
 
                 error:
                     error.message
+
             });
+
         }
+
+    };
+
+
+// =====================================================
+// GET PROOF HISTORY
+// =====================================================
+//
+// GET /proof/history
+//
+// Reads ProofAnchored events directly from blockchain.
+//
+// The smart contract does not need to be modified because
+// ProofAnchored is already emitted for every anchor.
+//
+// =====================================================
+
+exports.getProofHistory =
+    async (req, res) => {
+
+        try {
+
+            console.log(
+                "Reading blockchain proof history..."
+            );
+
+
+            if (!CONTRACT_ADDRESS) {
+
+                throw new Error(
+                    "CONTRACT_ADDRESS is missing from environment variables."
+                );
+            }
+
+
+            const provider =
+                createBlockchainProvider();
+
+
+            const proofStorageContract =
+                await getReadOnlyProofStorageContract(
+                    provider
+                );
+
+
+            const filter =
+                proofStorageContract.filters.ProofAnchored();
+
+
+            const events =
+                await proofStorageContract.queryFilter(
+                    filter,
+                    0,
+                    "latest"
+                );
+
+
+            if (
+                !events ||
+                events.length === 0
+            ) {
+
+                return res.status(200).json({
+
+                    success:
+                        true,
+
+                    history:
+                        [],
+
+                    totalAnchors:
+                        0
+
+                });
+
+            }
+
+
+            const history =
+                [];
+
+
+            for (
+                const event
+                of events
+            ) {
+
+                const args =
+                    event.args;
+
+
+                const merkleRoot =
+                    args?.merkleRoot ||
+                    args?.[0];
+
+
+                const ipfsCID =
+                    args?.ipfsCID ||
+                    args?.[1];
+
+
+                const uploadedBy =
+                    args?.uploadedBy ||
+                    args?.[2];
+
+
+                let blockTimestamp =
+                    null;
+
+
+                try {
+
+                    const block =
+                        await provider.getBlock(
+                            event.blockNumber
+                        );
+
+
+                    if (
+                        block
+                    ) {
+
+                        blockTimestamp =
+                            block.timestamp;
+
+                    }
+
+                } catch (
+                    timestampError
+                ) {
+
+                    console.warn(
+                        "Unable to read history block timestamp:",
+                        timestampError.message
+                    );
+
+                }
+
+
+                let recordCount =
+                    null;
+
+
+                try {
+
+                    const ipfsData =
+                        await getFromIPFS(
+                            ipfsCID
+                        );
+
+
+                    if (
+                        ipfsData &&
+                        Array.isArray(
+                            ipfsData.recordsWithHashes
+                        )
+                    ) {
+
+                        recordCount =
+                            ipfsData.recordsWithHashes.length;
+
+                    }
+
+                } catch (
+                    ipfsError
+                ) {
+
+                    console.warn(
+                        `Unable to count records for historical CID ${ipfsCID}:`,
+                        ipfsError.message
+                    );
+
+                }
+
+
+                history.push({
+
+                    merkleRoot,
+
+                    ipfsCID,
+
+                    uploadedBy,
+
+                    blockNumber:
+                        event.blockNumber,
+
+                    transactionHash:
+                        event.transactionHash,
+
+                    timestamp:
+                        blockTimestamp !== null
+                            ? blockTimestamp.toString()
+                            : null,
+
+                    recordCount
+
+                });
+
+            }
+
+
+            // Newest first.
+            history.reverse();
+
+
+            return res.status(200).json({
+
+                success:
+                    true,
+
+                history,
+
+                totalAnchors:
+                    history.length
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Proof history error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to retrieve blockchain proof history.",
+
+                error:
+                    error.message
+
+            });
+
+        }
+
+    };
+
+
+// =====================================================
+// VERIFY LATEST ANCHOR INTEGRITY
+// =====================================================
+//
+// GET /proof/integrity
+//
+// Finds the latest ProofAnchored event and performs a
+// real consistency check against blockchain, IPFS,
+// SHA-256 record hashes, Merkle Root and MongoDB proof index.
+//
+// =====================================================
+
+exports.verifyLatestAnchor =
+    async (req, res) => {
+
+        try {
+
+            console.log(
+                "Verifying latest anchor integrity..."
+            );
+
+
+            if (!CONTRACT_ADDRESS) {
+
+                throw new Error(
+                    "CONTRACT_ADDRESS is missing from environment variables."
+                );
+            }
+
+
+            const provider =
+                createBlockchainProvider();
+
+
+            const proofStorageContract =
+                await getReadOnlyProofStorageContract(
+                    provider
+                );
+
+
+            const filter =
+                proofStorageContract.filters.ProofAnchored();
+
+
+            const events =
+                await proofStorageContract.queryFilter(
+                    filter,
+                    0,
+                    "latest"
+                );
+
+
+            if (
+                !events ||
+                events.length === 0
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "No anchored proof is available to verify."
+
+                });
+
+            }
+
+
+            const latestEvent =
+                events[
+                    events.length - 1
+                ];
+
+
+            const merkleRoot =
+                latestEvent.args?.merkleRoot ||
+                latestEvent.args?.[0];
+
+
+            const result =
+                await performAnchorIntegrityCheck(
+                    merkleRoot
+                );
+
+
+            return res.status(
+                result.verified
+                    ? 200
+                    : 409
+            ).json({
+
+                success:
+                    true,
+
+                verified:
+                    result.verified,
+
+                verification:
+                    result,
+
+                blockchainEvent: {
+
+                    blockNumber:
+                        latestEvent.blockNumber,
+
+                    transactionHash:
+                        latestEvent.transactionHash
+
+                }
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Latest anchor integrity error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to verify latest anchor integrity.",
+
+                error:
+                    error.message
+
+            });
+
+        }
+
+    };
+
+
+// =====================================================
+// VERIFY SPECIFIC ANCHOR
+// =====================================================
+//
+// GET /proof/integrity/:merkleRoot
+//
+// =====================================================
+
+exports.verifyAnchorByRoot =
+    async (req, res) => {
+
+        try {
+
+            let {
+                merkleRoot
+            } =
+                req.params;
+
+
+            if (
+                !merkleRoot.startsWith("0x")
+            ) {
+
+                merkleRoot =
+                    `0x${merkleRoot}`;
+            }
+
+
+            if (
+                !/^0x[a-fA-F0-9]{64}$/.test(
+                    merkleRoot
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Invalid Merkle Root format."
+
+                });
+
+            }
+
+
+            const result =
+                await performAnchorIntegrityCheck(
+                    merkleRoot
+                );
+
+
+            return res.status(
+                result.verified
+                    ? 200
+                    : 409
+            ).json({
+
+                success:
+                    true,
+
+                verified:
+                    result.verified,
+
+                verification:
+                    result
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Anchor integrity error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to verify anchor integrity.",
+
+                error:
+                    error.message
+
+            });
+
+        }
+
     };
 
 
@@ -1128,12 +2168,14 @@ exports.getRecordProofContext =
 
                     message:
                         "Candidate ID and module code are required."
+
                 });
             }
 
 
             const normalizedCandidateId =
                 candidateId.trim();
+
 
             const normalizedModuleCode =
                 moduleCode.trim();
@@ -1176,6 +2218,7 @@ exports.getRecordProofContext =
 
                     moduleCode:
                         normalizedModuleCode
+
                 });
             }
 
@@ -1201,6 +2244,7 @@ exports.getRecordProofContext =
 
                     anchoredAt:
                         indexEntry.anchoredAt
+
                 }
 
             });
@@ -1223,8 +2267,11 @@ exports.getRecordProofContext =
 
                 error:
                     error.message
+
             });
+
         }
+
     };
 
 
@@ -1265,6 +2312,7 @@ exports.getAnchoredProof =
 
                     message:
                         "Invalid Merkle Root format."
+
                 });
             }
 
@@ -1289,9 +2337,7 @@ exports.getAnchoredProof =
 
 
             const provider =
-                new ethers.JsonRpcProvider(
-                    BLOCKCHAIN_RPC_URL
-                );
+                createBlockchainProvider();
 
 
             const contractCode =
@@ -1342,6 +2388,7 @@ exports.getAnchoredProof =
 
                     uploadedBy:
                         proof[2]
+
                 }
 
             });
@@ -1364,8 +2411,11 @@ exports.getAnchoredProof =
 
                 error:
                     error.message
+
             });
+
         }
+
     };
 
 
@@ -1406,6 +2456,7 @@ exports.getProofData =
 
                     message:
                         "Invalid Merkle Root format."
+
                 });
             }
 
@@ -1430,9 +2481,7 @@ exports.getProofData =
 
 
             const provider =
-                new ethers.JsonRpcProvider(
-                    BLOCKCHAIN_RPC_URL
-                );
+                createBlockchainProvider();
 
 
             const contractCode =
@@ -1497,6 +2546,7 @@ exports.getProofData =
 
                     message:
                         "IPFS data does not contain a Merkle Root."
+
                 });
             }
 
@@ -1534,6 +2584,7 @@ exports.getProofData =
 
                     ipfsMerkleRoot:
                         normalizedIPFSRoot
+
                 });
             }
 
@@ -1551,6 +2602,7 @@ exports.getProofData =
 
                     message:
                         "IPFS dataset does not contain a valid finalized record list."
+
                 });
             }
 
@@ -1575,12 +2627,14 @@ exports.getProofData =
 
                         uploadedBy:
                             uploadedBy
+
                     }
 
                 },
 
                 data:
                     ipfsData
+
             });
 
         } catch (error) {
@@ -1601,8 +2655,11 @@ exports.getProofData =
 
                 error:
                     error.message
+
             });
+
         }
+
     };
 
 
@@ -1636,6 +2693,7 @@ exports.getStudentMerkleProof =
 
                     message:
                         "merkleRoot, candidateId and moduleCode are required."
+
                 });
             }
 
@@ -1666,6 +2724,7 @@ exports.getStudentMerkleProof =
 
                     message:
                         "Invalid Merkle Root format."
+
                 });
             }
 
@@ -1702,9 +2761,7 @@ exports.getStudentMerkleProof =
 
 
             const provider =
-                new ethers.JsonRpcProvider(
-                    BLOCKCHAIN_RPC_URL
-                );
+                createBlockchainProvider();
 
 
             const contractCode =
@@ -1769,6 +2826,7 @@ exports.getStudentMerkleProof =
 
                     message:
                         "IPFS dataset does not contain valid finalized records."
+
                 });
             }
 
@@ -1808,6 +2866,7 @@ exports.getStudentMerkleProof =
 
                     ipfsMerkleRoot:
                         ipfsRoot
+
                 });
             }
 
@@ -1818,11 +2877,15 @@ exports.getStudentMerkleProof =
 
             const recordIndex =
                 ipfsData.recordsWithHashes.findIndex(
+
                     (record) =>
+
                         record.candidateId ===
                             candidateId &&
+
                         record.moduleCode ===
                             moduleCode
+
                 );
 
 
@@ -1841,6 +2904,7 @@ exports.getStudentMerkleProof =
                     candidateId,
 
                     moduleCode
+
                 });
             }
 
@@ -1896,6 +2960,7 @@ exports.getStudentMerkleProof =
 
                     message:
                         "Generated Merkle proof could not be verified against the official Merkle Root."
+
                 });
             }
 
@@ -1930,6 +2995,7 @@ exports.getStudentMerkleProof =
 
                     hash:
                         targetRecord.hash
+
                 },
 
                 leafIndex:
@@ -1940,6 +3006,7 @@ exports.getStudentMerkleProof =
 
                 proofVerified:
                     true
+
             });
 
         } catch (error) {
@@ -1960,6 +3027,9 @@ exports.getStudentMerkleProof =
 
                 error:
                     error.message
+
             });
+
         }
+
     };

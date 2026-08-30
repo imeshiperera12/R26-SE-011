@@ -403,6 +403,19 @@
     }
 
 
+    .badge.red {
+
+      border-color:
+        rgba(252,129,129,0.20);
+
+      background:
+        rgba(252,129,129,0.08);
+
+      color:
+        var(--red);
+    }
+
+
     .card-body {
 
       padding:
@@ -586,6 +599,16 @@
     }
 
 
+    .result-card.red {
+
+      border-color:
+        rgba(252,129,129,0.25);
+
+      background:
+        rgba(252,129,129,0.03);
+    }
+
+
     .result-label {
 
       margin-bottom:
@@ -641,6 +664,13 @@
 
       color:
         var(--yellow);
+    }
+
+
+    .red-text {
+
+      color:
+        var(--red);
     }
 
 
@@ -902,6 +932,332 @@
     }
 
 
+    /* =====================================================
+       PP2 · ANCHOR HISTORY
+    ====================================================== */
+
+    .anchor-history {
+
+      display:
+        flex;
+
+      flex-direction:
+        column;
+
+      gap:
+        10px;
+    }
+
+
+    .history-item {
+
+      padding:
+        16px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      background:
+        rgba(255,255,255,0.02);
+    }
+
+
+    .history-item-header {
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        space-between;
+
+      gap:
+        12px;
+
+      margin-bottom:
+        10px;
+    }
+
+
+    .history-title {
+
+      color:
+        var(--text);
+
+      font-size:
+        13px;
+
+      font-weight:
+        600;
+    }
+
+
+    .history-status {
+
+      color:
+        var(--green);
+
+      font-family:
+        var(--mono);
+
+      font-size:
+        10px;
+
+      white-space:
+        nowrap;
+    }
+
+
+    .history-meta {
+
+      color:
+        var(--text-mid);
+
+      font-family:
+        var(--mono);
+
+      font-size:
+        10px;
+
+      line-height:
+        1.8;
+
+      word-break:
+        break-all;
+    }
+
+
+    /* =====================================================
+       PP2 · INTEGRITY CHECK
+    ====================================================== */
+
+    .integrity-grid {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(5, minmax(0,1fr));
+
+      gap:
+        10px;
+
+      margin-top:
+        14px;
+    }
+
+
+    @media (
+      max-width:900px
+    ) {
+
+      .integrity-grid {
+
+        grid-template-columns:
+          repeat(2, minmax(0,1fr));
+      }
+    }
+
+
+    @media (
+      max-width:550px
+    ) {
+
+      .integrity-grid {
+
+        grid-template-columns:
+          1fr;
+      }
+    }
+
+
+    .integrity-check {
+
+      padding:
+        14px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      background:
+        rgba(255,255,255,0.02);
+    }
+
+
+    .integrity-check.pass {
+
+      border-color:
+        rgba(104,211,145,0.25);
+
+      background:
+        rgba(104,211,145,0.04);
+    }
+
+
+    .integrity-check.fail {
+
+      border-color:
+        rgba(252,129,129,0.25);
+
+      background:
+        rgba(252,129,129,0.04);
+    }
+
+
+    .integrity-check-label {
+
+      margin-bottom:
+        7px;
+
+      color:
+        var(--text-dim);
+
+      font-family:
+        var(--mono);
+
+      font-size:
+        9px;
+
+      letter-spacing:
+        0.12em;
+
+      text-transform:
+        uppercase;
+    }
+
+
+    .integrity-check-value {
+
+      color:
+        var(--text-mid);
+
+      font-family:
+        var(--mono);
+
+      font-size:
+        10px;
+
+      line-height:
+        1.6;
+    }
+
+
+    .integrity-check.pass
+    .integrity-check-value {
+
+      color:
+        var(--green);
+    }
+
+
+    .integrity-check.fail
+    .integrity-check-value {
+
+      color:
+        var(--red);
+    }
+
+
+    .integrity-result {
+
+      margin-top:
+        14px;
+
+      padding:
+        14px 16px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      font-family:
+        var(--mono);
+
+      font-size:
+        12px;
+
+      line-height:
+        1.7;
+    }
+
+
+    .integrity-result.pass {
+
+      border-color:
+        rgba(104,211,145,0.30);
+
+      background:
+        rgba(104,211,145,0.06);
+
+      color:
+        var(--green);
+    }
+
+
+    .integrity-result.fail {
+
+      border-color:
+        rgba(252,129,129,0.30);
+
+      background:
+        rgba(252,129,129,0.06);
+
+      color:
+        var(--red);
+    }
+
+
+    .last-updated {
+
+      margin-top:
+        8px;
+
+      color:
+        var(--text-dim);
+
+      font-family:
+        var(--mono);
+
+      font-size:
+        10px;
+    }
+
+
+    .empty-state {
+
+      padding:
+        18px;
+
+      border:
+        1px dashed var(--border);
+
+      border-radius:
+        12px;
+
+      color:
+        var(--text-dim);
+
+      font-family:
+        var(--mono);
+
+      font-size:
+        11px;
+
+      text-align:
+        center;
+    }
+
+
     .footer {
 
       margin-top:
@@ -1106,6 +1462,252 @@
 
     </div>
 
+
+    <div class="result-card">
+
+      <div class="result-label">
+
+        Last Updated
+
+      </div>
+
+
+      <div
+        class="result-value"
+        id="last-updated"
+      >
+
+        Not loaded
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       INTEGRITY CHECK
+  ====================================================== -->
+
+  <p class="section-label">
+
+    Anchor integrity
+
+  </p>
+
+
+  <div class="card">
+
+    <div class="card-header">
+
+      <div class="card-header-left">
+
+        <div class="icon">
+          ✓
+        </div>
+
+        <span>
+
+          Latest anchor verification
+
+        </span>
+
+      </div>
+
+
+      <span
+        class="badge"
+        id="integrity-badge"
+      >
+
+        NOT CHECKED
+
+      </span>
+
+    </div>
+
+
+    <div class="card-body">
+
+      <p
+        class="status"
+      >
+
+        Verifies the consistency of the blockchain anchor,
+        IPFS dataset, SHA-256 hashes, Merkle Root and proof index.
+
+      </p>
+
+
+      <div class="actions">
+
+        <button
+          class="primary"
+          id="integrity-btn"
+          onclick="verifyLatestAnchor()"
+        >
+
+          ✓ Verify latest anchor
+
+        </button>
+
+      </div>
+
+
+      <div
+        id="integrity-checks"
+        class="integrity-grid"
+      >
+
+
+        <div class="integrity-check">
+
+          <div class="integrity-check-label">
+            Blockchain
+          </div>
+
+          <div class="integrity-check-value">
+            Not checked
+          </div>
+
+        </div>
+
+
+        <div class="integrity-check">
+
+          <div class="integrity-check-label">
+            IPFS
+          </div>
+
+          <div class="integrity-check-value">
+            Not checked
+          </div>
+
+        </div>
+
+
+        <div class="integrity-check">
+
+          <div class="integrity-check-label">
+            SHA-256
+          </div>
+
+          <div class="integrity-check-value">
+            Not checked
+          </div>
+
+        </div>
+
+
+        <div class="integrity-check">
+
+          <div class="integrity-check-label">
+            Merkle Root
+          </div>
+
+          <div class="integrity-check-value">
+            Not checked
+          </div>
+
+        </div>
+
+
+        <div class="integrity-check">
+
+          <div class="integrity-check-label">
+            Proof Index
+          </div>
+
+          <div class="integrity-check-value">
+            Not checked
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="integrity-result"
+        class="integrity-result"
+        style="display:none;"
+      >
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       ANCHOR HISTORY
+  ====================================================== -->
+
+  <p class="section-label">
+
+    Anchor history
+
+  </p>
+
+
+  <div class="card">
+
+    <div class="card-header">
+
+      <div class="card-header-left">
+
+        <div class="icon">
+          ◷
+        </div>
+
+        <span>
+
+          Historical blockchain anchors
+
+        </span>
+
+      </div>
+
+
+      <span
+        class="badge"
+        id="history-badge"
+      >
+
+        Loading
+
+      </span>
+
+    </div>
+
+
+    <div class="card-body">
+
+      <p
+        class="status"
+        style="margin-bottom:14px;"
+      >
+
+        Historical ProofAnchored events recorded by the
+        ProofStorage blockchain.
+
+      </p>
+
+
+      <div
+        id="anchor-history"
+        class="anchor-history"
+      >
+
+        <div class="status">
+          Loading blockchain history…
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
 
@@ -1208,7 +1810,8 @@
 
   </div>
 
-<!-- =====================================================
+
+  <!-- =====================================================
        PROOF INDEX STATUS
   ====================================================== -->
 
@@ -1283,17 +1886,20 @@
         class="status"
         style="margin-top:2px;"
       >
+
         Component 1 maintains the proof index after successful
         blockchain anchoring. Component 4 can use this indexed
         proof context to locate the correct anchored dataset for
         a verification request.
+
       </p>
 
     </div>
 
   </div>
 
-<!-- =====================================================
+
+  <!-- =====================================================
        COMPONENT 1 FLOW
   ====================================================== -->
 
@@ -1467,7 +2073,8 @@
 
   </div>
 
-<!-- =====================================================
+
+  <!-- =====================================================
        FOOTER
   ====================================================== -->
 
@@ -1491,6 +2098,14 @@
 
 
 <script>
+
+  // =====================================================
+  // CONFIGURATION
+  // =====================================================
+
+  const IPFS_GATEWAY =
+    "coral-top-mackerel-788.mypinata.cloud";
+
 
   // =====================================================
   // LOAD LATEST ANCHORED PROOF
@@ -1601,7 +2216,7 @@
 
         <a
           href="
-            https://red-rare-goat-296.mypinata.cloud/ipfs/${encodeURIComponent(
+            https://${IPFS_GATEWAY}/ipfs/${encodeURIComponent(
               proof.ipfsCID
             )}
           "
@@ -1656,6 +2271,16 @@
         )}
 
       `;
+
+
+      // =================================================
+      // DISPLAY LAST UPDATED
+      // =================================================
+
+      document.getElementById(
+        "last-updated"
+      ).textContent =
+        new Date().toLocaleString();
 
 
       // =================================================
@@ -1740,6 +2365,13 @@
         `${records.length} finalized record(s)`;
 
 
+      // =================================================
+      // LOAD HISTORY
+      // =================================================
+
+      await loadAnchorHistory();
+
+
       setStatus(
         `✔ Latest anchored proof loaded successfully. ${records.length} finalized record(s) displayed.`,
         "var(--green)"
@@ -1763,12 +2395,585 @@
       );
 
 
+      // Even when no current anchor exists, still try
+      // loading historical blockchain events.
+      await loadAnchorHistory();
+
     } finally {
 
       button.disabled =
         false;
 
     }
+
+  }
+
+
+  // =====================================================
+  // LOAD ANCHOR HISTORY
+  // =====================================================
+
+  async function loadAnchorHistory() {
+
+    const historyContainer =
+      document.getElementById(
+        "anchor-history"
+      );
+
+
+    const historyBadge =
+      document.getElementById(
+        "history-badge"
+      );
+
+
+    try {
+
+      const response =
+        await fetch(
+          "/proof/history",
+          {
+            method:
+              "GET",
+
+            headers: {
+              Accept:
+                "application/json"
+            },
+
+            cache:
+              "no-store"
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (
+        !response.ok ||
+        !data.success
+      ) {
+
+        throw new Error(
+          data.error ||
+          data.message ||
+          "Unable to load anchor history."
+        );
+
+      }
+
+
+      const history =
+        Array.isArray(
+          data.history
+        )
+          ? data.history
+          : [];
+
+
+      historyBadge.classList.remove(
+        "green",
+        "red"
+      );
+
+
+      historyBadge.textContent =
+        `${history.length} anchor(s)`;
+
+
+      if (
+        history.length === 0
+      ) {
+
+        historyContainer.innerHTML = `
+
+          <div class="empty-state">
+
+            No blockchain anchors are available yet.
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      historyContainer.innerHTML =
+        "";
+
+
+      history.forEach(
+        (entry, index) => {
+
+          const item =
+            document.createElement(
+              "div"
+            );
+
+
+          item.className =
+            "history-item";
+
+
+          const root =
+            entry.merkleRoot ||
+            "Unknown";
+
+
+          const recordText =
+            entry.recordCount === null ||
+            entry.recordCount === undefined
+              ? "Record count unavailable"
+              : `${entry.recordCount} record(s)`;
+
+
+          item.innerHTML = `
+
+            <div class="history-item-header">
+
+              <div class="history-title">
+
+                Anchor ${history.length - index}
+
+              </div>
+
+              <div class="history-status">
+
+                ✓ BLOCKCHAIN EVENT
+
+              </div>
+
+            </div>
+
+
+            <div class="history-meta">
+
+              Merkle Root:
+              ${escapeHtml(
+                root
+              )}
+
+              <br>
+
+              IPFS CID:
+              ${escapeHtml(
+                entry.ipfsCID ||
+                "Not available"
+              )}
+
+              <br>
+
+              Block:
+              ${escapeHtml(
+                String(
+                  entry.blockNumber ??
+                  "—"
+                )
+              )}
+
+              <br>
+
+              Transaction:
+              ${escapeHtml(
+                entry.transactionHash ||
+                "Not available"
+              )}
+
+              <br>
+
+              Records:
+              ${escapeHtml(
+                recordText
+              )}
+
+              <br>
+
+              Anchored:
+              ${escapeHtml(
+                formatTimestamp(
+                  entry.timestamp
+                )
+              )}
+
+            </div>
+
+          `;
+
+
+          historyContainer.appendChild(
+            item
+          );
+
+        }
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Anchor history loading error:",
+        error
+      );
+
+
+      historyBadge.classList.remove(
+        "green"
+      );
+
+
+      historyBadge.classList.add(
+        "red"
+      );
+
+
+      historyBadge.textContent =
+        "ERROR";
+
+
+      historyContainer.innerHTML = `
+
+        <div
+          class="status"
+          style="color:var(--red);"
+        >
+
+          ✕ ${escapeHtml(
+            error.message
+          )}
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // VERIFY LATEST ANCHOR
+  // =====================================================
+
+  async function verifyLatestAnchor() {
+
+    const button =
+      document.getElementById(
+        "integrity-btn"
+      );
+
+
+    const badge =
+      document.getElementById(
+        "integrity-badge"
+      );
+
+
+    const resultContainer =
+      document.getElementById(
+        "integrity-result"
+      );
+
+
+    button.disabled =
+      true;
+
+
+    badge.classList.remove(
+      "green",
+      "red"
+    );
+
+
+    badge.textContent =
+      "CHECKING";
+
+
+    resultContainer.style.display =
+      "none";
+
+
+    try {
+
+      const response =
+        await fetch(
+          "/proof/integrity",
+          {
+            method:
+              "GET",
+
+            headers: {
+              Accept:
+                "application/json"
+            },
+
+            cache:
+              "no-store"
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (
+        !response.ok
+      ) {
+
+        throw new Error(
+          data.error ||
+          data.message ||
+          "Integrity check failed."
+        );
+
+      }
+
+
+      if (
+        !data.success ||
+        !data.verification
+      ) {
+
+        throw new Error(
+          data.message ||
+          "Integrity verification returned an invalid response."
+        );
+
+      }
+
+
+      const verification =
+        data.verification;
+
+
+      renderIntegrityCheck(
+        verification
+      );
+
+
+      if (
+        verification.verified
+      ) {
+
+        badge.classList.add(
+          "green"
+        );
+
+
+        badge.textContent =
+          "VERIFIED";
+
+
+        resultContainer.className =
+          "integrity-result pass";
+
+
+        resultContainer.style.display =
+          "block";
+
+
+        resultContainer.textContent =
+          "✓ INTEGRITY VERIFIED — Blockchain, IPFS, SHA-256 hashes, Merkle Root and Proof Index are consistent.";
+
+      } else {
+
+        badge.classList.add(
+          "red"
+        );
+
+
+        badge.textContent =
+          "FAILED";
+
+
+        resultContainer.className =
+          "integrity-result fail";
+
+
+        resultContainer.style.display =
+          "block";
+
+
+        resultContainer.textContent =
+          "✕ INTEGRITY CHECK FAILED — One or more evidence sources are inconsistent.";
+
+      }
+
+
+    } catch (error) {
+
+      console.error(
+        "Integrity verification error:",
+        error
+      );
+
+
+      badge.classList.add(
+        "red"
+      );
+
+
+      badge.textContent =
+        "ERROR";
+
+
+      resultContainer.className =
+        "integrity-result fail";
+
+
+      resultContainer.style.display =
+        "block";
+
+
+      resultContainer.textContent =
+        `✕ ${error.message}`;
+
+    } finally {
+
+      button.disabled =
+        false;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // RENDER INTEGRITY CHECK RESULTS
+  // =====================================================
+
+  function renderIntegrityCheck(
+    verification
+  ) {
+
+    const checks =
+      verification.checks || {};
+
+
+    const container =
+      document.getElementById(
+        "integrity-checks"
+      );
+
+
+    const definitions = [
+
+      {
+        key:
+          "blockchain",
+
+        label:
+          "Blockchain"
+      },
+
+      {
+        key:
+          "ipfs",
+
+        label:
+          "IPFS"
+      },
+
+      {
+        key:
+          "sha256",
+
+        label:
+          "SHA-256"
+      },
+
+      {
+        key:
+          "merkle",
+
+        label:
+          "Merkle Root"
+      },
+
+      {
+        key:
+          "proofIndex",
+
+        label:
+          "Proof Index"
+      }
+
+    ];
+
+
+    container.innerHTML =
+      "";
+
+
+    definitions.forEach(
+      (definition) => {
+
+        const check =
+          checks[
+            definition.key
+          ];
+
+
+        const passed =
+          Boolean(
+            check &&
+            check.passed
+          );
+
+
+        const item =
+          document.createElement(
+            "div"
+          );
+
+
+        item.className =
+          `integrity-check ${
+            passed
+              ? "pass"
+              : "fail"
+          }`;
+
+
+        item.innerHTML = `
+
+          <div class="integrity-check-label">
+
+            ${escapeHtml(
+              definition.label
+            )}
+
+          </div>
+
+
+          <div class="integrity-check-value">
+
+            ${passed
+              ? "✓ PASS"
+              : "✕ FAIL"}
+
+            <br>
+
+            ${escapeHtml(
+              check?.message ||
+              "No verification message available."
+            )}
+
+          </div>
+
+        `;
+
+
+        container.appendChild(
+          item
+        );
+
+      }
+    );
 
   }
 
@@ -1881,6 +3086,12 @@
 
     document.getElementById(
       "transaction-hash"
+    ).textContent =
+      "Not loaded";
+
+
+    document.getElementById(
+      "last-updated"
     ).textContent =
       "Not loaded";
 
@@ -2028,7 +3239,7 @@
 
 
   // =====================================================
-  // LOAD AUTOMATICALLY
+  // INITIAL PAGE LOAD
   // =====================================================
 
   window.addEventListener(
