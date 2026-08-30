@@ -119,7 +119,7 @@ function EditForm({ candidateData, module, onSaveSuccess }) {
     try {
       setLoading(true);
 
-      const response = await api.post("http://localhost:5001/api/edit", {
+      const response = await api.post("/edit", {
         moduleCode: module.moduleCode,
         candidateId: candidateData.candidateId,
         newMarks: Number(marks),

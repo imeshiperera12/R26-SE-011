@@ -60,3 +60,18 @@ verify-out.txt
 .DS_Store
 Thumbs.db
 .vscode/settings.json
+
+# Railway runtime ZKP artifacts. Keep every other generated build file ignored.
+!build/
+build/*
+!build/loginVerifier_final.zkey
+!build/loginVerifier_verification_key.json
+!build/claimBoundVerifier_final.zkey
+!build/claimBoundVerifier_verification_key.json
+!build/verification_key.json
+!build/loginVerifier_js/
+build/loginVerifier_js/*
+!build/loginVerifier_js/loginVerifier.wasm
+!build/claimBoundVerifier_js/
+build/claimBoundVerifier_js/*
+!build/claimBoundVerifier_js/claimBoundVerifier.wasm

@@ -1,5 +1,6 @@
 const { checkModuleAccess } = require("../services/moduleAccessService");
 const Result = require("../models/Result");
+const FinalResult = require("../models/FinalResult");
 
 // =======================================
 // AUTOMATIC GRADE GENERATION
@@ -68,38 +69,42 @@ exports.getResultsByModule = async (req, res) => {
 };
 
 // =======================================
-// GET CANDIDATE BY ID
+// GET CANDIDATE BY MODULE AND ID
 // =======================================
 
 exports.getCandidateById = async (req, res) => {
   try {
-    const candidateId = req.params.candidateId;
-
-    const result = await Result.findOne({
-      candidateId,
-      isRecorrection: false,
-    });
-
-    if (!result) {
-      return res.status(404).json({
-        message: "Candidate not found",
-      });
-    }
+    const moduleCode = req.params.moduleCode.trim().toUpperCase();
+    const candidateId = req.params.candidateId.trim();
 
     // MODULE ASSIGNMENT CHECK
-    if (!req.user.assignedModules.includes(result.moduleCode)) {
+    if (!req.user.assignedModules.includes(moduleCode)) {
       return res.status(403).json({
         message: "Access denied.",
       });
     }
 
     // MODULE REVIEW STATUS CHECK
-    const access = await checkModuleAccess(result.moduleCode);
+    const access = await checkModuleAccess(moduleCode);
 
     if (!access.allowed) {
       return res.status(403).json({
         message: "BOE review period for this module has ended.",
         status: access.status.status,
+      });
+    }
+
+    // FIND CANDIDATE USING BOTH MODULE CODE AND CANDIDATE ID
+    const result = await Result.findOne({
+      candidateId,
+      moduleCode,
+      isRecorrection: false,
+      finalized: false,
+    });
+
+    if (!result) {
+      return res.status(404).json({
+        message: "Candidate record not found for this module.",
       });
     }
 
@@ -220,6 +225,34 @@ exports.editResult = async (req, res) => {
 
     res.status(500).json({
       error: "Server error",
+    });
+  }
+};
+
+// =======================================
+// GET ALL FINALIZED RESULTS
+// =======================================
+
+exports.getFinalizedResults = async (req, res) => {
+  try {
+    const results = await FinalResult.find({})
+      .sort({
+        finalizedAt: -1,
+        candidateId: 1,
+      })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      count: results.length,
+      results,
+    });
+  } catch (error) {
+    console.error("❌ Get finalized results error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch finalized results.",
     });
   }
 };

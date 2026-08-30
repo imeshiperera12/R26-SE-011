@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: component-4-security-layer
+    runtime: node
+    plan: free
+    rootDir: component-04/component4-security-layer
+    buildCommand: npm ci --prefix backend && npm ci --prefix frontend && npm run build --prefix frontend
+    startCommand: npm start --prefix backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ACADEMIC_DATA_BASE_URL
+        value: https://r26-se-011-production-6665.up.railway.app/proof
+      - key: REQUIRE_GRADE_ZKP
+        value: "true"
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d
+      - key: API_RATE_LIMIT
+        value: "300"
+      - key: AUTH_RATE_LIMIT
+        value: "10"
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: VERIFICATION_AUDIT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false

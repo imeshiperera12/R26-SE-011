@@ -152,6 +152,28 @@ function Dashboard() {
             </div>
           </div>
 
+          <button
+            className="finalized-results-btn"
+            onClick={() => navigate("/finalized-results")}
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <ellipse cx="12" cy="5" rx="8" ry="3" />
+              <path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5" />
+              <path d="M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7" />
+            </svg>
+
+            <span>Finalized Results</span>
+
+            <span className="finalized-results-btn__arrow">→</span>
+          </button>
+
           <button className="logout-btn" onClick={handleLogout}>
             <svg
               width="15"
@@ -436,7 +458,10 @@ function Dashboard() {
                 CANDIDATE SEARCH
                 ================================== */}
 
-            <CandidateSearch module={selectedModule} />
+            <CandidateSearch
+              key={selectedModule.moduleCode}
+              module={selectedModule}
+            />
           </>
         )}
       </main>

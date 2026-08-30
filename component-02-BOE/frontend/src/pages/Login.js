@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { login } from "../services/authService";
 import { saveUser } from "../utils/auth";
@@ -8,16 +8,14 @@ import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [username, setUsername] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setError("");
 
     try {
@@ -25,7 +23,8 @@ export default function Login() {
 
       saveUser(data);
 
-      navigate("/dashboard");
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
     } catch {
       setError("Invalid username or password");
     }
