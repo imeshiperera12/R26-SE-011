@@ -12,10 +12,7 @@ exports.exportResultsByModule = async (req, res) => {
 
     console.log(`\n📤 Excel export requested for module: ${moduleCode}`);
 
-    // =======================================
     // MODULE ACCESS CONTROL
-    // =======================================
-
     if (!req.user.assignedModules.includes(moduleCode)) {
       return res.status(403).json({
         message: "You are not assigned to this module.",
