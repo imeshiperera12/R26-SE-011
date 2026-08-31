@@ -52,12 +52,67 @@ router.post(
 // - block number
 // - transaction hash
 //
-// Used by the current Component 1 frontend.
 // =====================================================
 
 router.get(
     "/proof/latest",
     proofController.getLatestProof
+);
+
+
+// =====================================================
+// GET ANCHOR HISTORY
+// =====================================================
+//
+// GET /proof/history
+//
+// Returns historical ProofAnchored blockchain events.
+//
+// Used by Component 1 frontend to display previous
+// blockchain anchors.
+// =====================================================
+
+router.get(
+    "/proof/history",
+    proofController.getProofHistory
+);
+
+
+// =====================================================
+// VERIFY LATEST ANCHOR
+// =====================================================
+//
+// GET /proof/integrity
+//
+// Performs a real consistency check between:
+//
+// - Blockchain
+// - IPFS
+// - Merkle Root
+// - SHA-256 record hashes
+// - MongoDB proof index
+//
+// =====================================================
+
+router.get(
+    "/proof/integrity",
+    proofController.verifyLatestAnchor
+);
+
+
+// =====================================================
+// VERIFY SPECIFIC ANCHOR
+// =====================================================
+//
+// GET /proof/integrity/:merkleRoot
+//
+// Performs the same integrity check for a specific
+// Merkle Root.
+// =====================================================
+
+router.get(
+    "/proof/integrity/:merkleRoot",
+    proofController.verifyAnchorByRoot
 );
 
 
@@ -69,15 +124,6 @@ router.get(
 //
 // Finds the most recently anchored proof context for
 // a candidate + module.
-//
-// Returns:
-//
-// - candidateId
-// - moduleCode
-// - Merkle Root
-// - IPFS CID
-// - anchoredAt
-//
 // =====================================================
 
 router.get(
@@ -98,6 +144,7 @@ router.get(
 // - IPFS CID
 // - timestamp
 // - uploader
+//
 // =====================================================
 
 router.get(
