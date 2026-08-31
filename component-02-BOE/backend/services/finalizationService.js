@@ -1,38 +1,21 @@
 const Result = require("../models/Result");
 const FinalResult = require("../models/FinalResult");
 const { generateResultHash } = require("../utils/hashGenerator");
-const fs = require("fs");
-const path = require("path");
 
 // =======================================
 // DYNAMIC CONFIG READER (Synced with Component 3 Admin Policy)
 // =======================================
 const getSystemPolicy = () => {
-  try {
-    const configPath = path.join(
-      __dirname,
-      "../../../component-03-silent-bridge/middleware/system-config.json",
-    );
-    if (fs.existsSync(configPath)) {
-      const raw = fs.readFileSync(configPath, "utf8");
-      const policy = JSON.parse(raw);
-      console.log(
-        `📡 [Sync Success] Component 2 successfully read Component 3 Policy:`,
-        policy,
-      );
-      return policy;
-    }
-  } catch (err) {
-    console.warn(
-      "⚠️ Could not load system-config.json in Component 2, falling back to defaults.",
-    );
-  }
-  return {
-    standardUploadWindow: 7,
-    boeReviewWindow: 14,
-    specialConcernsWindow: 21,
-    timeUnit: "days",
+  const policy = {
+    timeUnit: process.env.TIME_UNIT || "minutes",
+    standardUploadWindow: Number(process.env.STANDARD_UPLOAD_WINDOW || 1),
+    boeReviewWindow: Number(process.env.BOE_REVIEW_WINDOW || 2),
+    specialConcernsWindow: Number(process.env.SPECIAL_CONCERNS_WINDOW || 3),
   };
+
+  console.log("📡 [Policy Loaded] Using environment configuration:", policy);
+
+  return policy;
 };
 
 // =======================================

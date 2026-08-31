@@ -1,6 +1,3 @@
-const fs = require("fs");
-const path = require("path");
-
 const FinalResult = require("../models/FinalResult");
 const { sendResultsToComponent1 } = require("../services/blockchainService");
 
@@ -9,24 +6,9 @@ const { sendResultsToComponent1 } = require("../services/blockchainService");
 // =======================================
 
 const getPolicyConfig = () => {
-  try {
-    const configPath = path.join(
-      __dirname,
-      "../../../component-03-silent-bridge/middleware/system-config.json",
-    );
-
-    if (fs.existsSync(configPath)) {
-      const raw = fs.readFileSync(configPath, "utf8");
-
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.warn("⚠️ Could not read policy for blockchain job.");
-  }
-
   return {
-    timeUnit: "minutes",
-    specialConcernsWindow: 5,
+    timeUnit: process.env.TIME_UNIT || "minutes",
+    specialConcernsWindow: Number(process.env.SPECIAL_CONCERNS_WINDOW || 3),
   };
 };
 
