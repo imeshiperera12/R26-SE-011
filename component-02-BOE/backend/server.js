@@ -30,28 +30,26 @@ app.use("/api", importRoutes);
 app.use("/api", exportRoutes);
 app.use("/api", specialConcernRoutes);
 
-// Test Route
-app.get("/", (req, res) => {
-  res.status(200).send("Component 2 Backend Running");
-});
-
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB Connected");
 
-    // Start automatic jobs
+    // Start automatic finalization
     startFinalizationJob();
     startBlockchainJob();
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    console.log(err);
   });
 
-// Start Server
-const PORT = process.env.PORT || 5001;
+// Test Route
+app.get("/", (req, res) => {
+  res.send("Component 2 Backend Running");
+});
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
+// Start Server
+app.listen(process.env.PORT, () => {
+  console.log(`Server running on port ${process.env.PORT}`);
 });
