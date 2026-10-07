@@ -1,4 +1,4 @@
-import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 const ProofStorageModule = buildModule(
     "ProofStorageModule",
@@ -13,4 +13,4 @@ const ProofStorageModule = buildModule(
     }
 );
 
-export default ProofStorageModule;
+module.exports = ProofStorageModule;
