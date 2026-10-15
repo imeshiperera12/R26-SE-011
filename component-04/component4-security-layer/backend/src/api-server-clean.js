@@ -276,7 +276,7 @@ app.post('/api/admin/evidence/run', requireAuth, requireRole(['admin']), async (
       claimedGrade: alteredGrade,
       sessionToken: req.authToken,
     });
-    const transcript = await verificationService.verifyTranscriptRequest({ candidateId, sessionToken: req.authToken });
+    const requirement = await verificationService.verifyGradeRequirement({ candidateId, moduleCode, minimumGrade: claimedGrade, sessionToken: req.authToken });
 
     let mongoConnected = false;
     try {
@@ -291,7 +291,7 @@ app.post('/api/admin/evidence/run', requireAuth, requireRole(['admin']), async (
       subject: { candidateId: candidateId.toUpperCase(), moduleCode: moduleCode.toUpperCase() },
       validClaim: { result: validClaim.result, checks: validClaim.checks || {} },
       tamperedClaim: { result: tamperedClaim.result, checks: tamperedClaim.checks || {} },
-      transcript: { result: transcript.result },
+      requirement: { result: requirement.result },
       operational: {
         component1: validClaim.checks?.recordFound === true,
         mongodb: mongoConnected,
@@ -371,12 +371,17 @@ async function handleClaimVerification(req, res) {
 app.post('/api/verify/claim', requireAuth, requireRole(['admin', 'verifier', 'auditor', 'institution']), handleClaimVerification);
 app.post('/api/verify/grade', requireAuth, requireRole(['admin', 'verifier', 'auditor', 'institution']), handleClaimVerification);
 
-app.post('/api/verify/transcript', requireAuth, requireRole(['admin', 'verifier', 'auditor', 'institution']), async (req, res) => {
+app.get('/api/verify/grade-scale', requireAuth, requireRole(['admin', 'verifier', 'auditor', 'institution']), (_req, res) => {
+  return res.json({ success: true, grades: [...verificationService.requirementGrades].reverse() });
+});
+
+app.post('/api/verify/grade-requirement', requireAuth, requireRole(['admin', 'verifier', 'auditor', 'institution']), async (req, res) => {
   try {
-    const result = await verificationService.verifyTranscriptRequest({ candidateId: req.body?.candidateId, sessionToken: req.authToken });
-    return res.status(200).json({ success: true, valid: result.result === 'VALID', result: result.result === 'VALID' ? 'VALID' : 'INVALID' });
+    const result = await verificationService.verifyGradeRequirement({ candidateId: req.body?.candidateId, moduleCode: req.body?.moduleCode, minimumGrade: req.body?.minimumGrade, sessionToken: req.authToken });
+    const { status, ...payload } = result;
+    return res.status(status || 200).json(payload);
   } catch (_error) {
-    return res.status(200).json({ success: true, valid: false, result: 'INVALID' });
+    return res.status(503).json({ success: false, result: 'UNABLE_TO_VERIFY', evidence: { officialRecordAuthenticated: false } });
   }
 });
 

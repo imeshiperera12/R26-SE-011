@@ -298,7 +298,7 @@ function LoginView({ onAuthenticated }) {
           <h1>Verification Portal</h1>
           <p className="portal-subtitle hero-copy">
             Professional employer-grade verification for decentralized academic records with role-based access,
-            anchored dataset validation, and transcript integrity checks.
+            anchored dataset validation, and grade requirement checks.
           </p>
 
           <div className="portal-highlight-strip">
@@ -572,7 +572,7 @@ function LoginView({ onAuthenticated }) {
             </div>
             <div className="footnote-card">
               <span>Verification</span>
-              <strong>Hash, Merkle root, and transcript integrity checks</strong>
+              <strong>Hash, Merkle root, and grade requirement checks</strong>
             </div>
           </div>
         </div>
@@ -594,6 +594,49 @@ function EvidenceStatus({ label, passed, value }) {
   );
 }
 
+function RequirementDecision({ result, onCheckAnother, onRetry, loading }) {
+  const messages = {
+    MEETS_REQUIREMENT: {
+      tone: 'success', label: 'REQUIREMENT MET', symbol: '\u2713',
+      title: 'Congratulations! Requirement met.',
+      description: "The candidate's verified academic result meets your company's minimum grade requirement.",
+    },
+    DOES_NOT_MEET: {
+      tone: 'below', label: 'BELOW REQUIREMENT', symbol: '-',
+      title: 'Minimum requirement not met.',
+      description: "The candidate's verified academic result is below your company's minimum grade requirement.",
+    },
+    UNABLE_TO_VERIFY: {
+      tone: 'pending', label: 'VERIFICATION INCOMPLETE', symbol: '?',
+      title: 'We could not verify this result.',
+      description: 'Please check the student\'s Candidate ID and Module Code, and confirm that their grade has been finalized. Required evidence may be missing or temporarily unavailable.',
+    },
+  };
+  const message = messages[result?.result] || messages.UNABLE_TO_VERIFY;
+  const authenticated = message.tone !== 'pending' && result?.evidence?.officialRecordAuthenticated === true;
+  return (
+    <section className={`requirement-decision requirement-decision--${message.tone}`} role="status" aria-live="polite" aria-atomic="true">
+      <div className="requirement-decision-heading">
+        <span className="requirement-decision-symbol" aria-hidden="true">{message.symbol}</span>
+        <span className="requirement-decision-label">{message.label}</span>
+      </div>
+      <h4>{message.title}</h4>
+      <p className="requirement-decision-copy">{message.description}</p>
+      <div className="requirement-evidence">
+        <strong>{authenticated ? 'Official evidence authenticated' : 'No academic decision made'}</strong>
+        <p>{authenticated ? 'Blockchain anchor, IPFS dataset, SHA-256 hash and Merkle proof verified.' : 'An incomplete verification does not mean the candidate failed the requirement.'}</p>
+      </div>
+      <p className="requirement-privacy">The official grade and marks remain private.</p>
+      <div className="button-row">
+        <button type="button" className="secondary-button" onClick={onCheckAnother} disabled={loading}>
+          {message.tone === 'below' ? 'Try Another Candidate' : message.tone === 'pending' ? 'Review Student Details' : 'Check Another Candidate'}
+        </button>
+        {message.tone === 'pending' ? <button type="button" className="primary-button" onClick={onRetry} disabled={loading}>{loading ? 'Verifying...' : 'Retry Verification'}</button> : null}
+      </div>
+    </section>
+  );
+}
+
 function AuthenticatedView({ account, session, onLogout }) {
   const currentRole = (account?.user?.role || session?.role || 'verifier').toLowerCase();
   const isAdmin = currentRole === 'admin';
@@ -601,6 +644,11 @@ function AuthenticatedView({ account, session, onLogout }) {
   const [candidateId, setCandidateId] = useState('');
   const [moduleCode, setModuleCode] = useState('');
   const [claimedGrade, setClaimedGrade] = useState('');
+  const [minimumGrade, setMinimumGrade] = useState('');
+  const [gradeScale, setGradeScale] = useState([]);
+  useEffect(() => {
+    requestJson('/api/verify/grade-scale').then((payload) => setGradeScale(payload.grades || [])).catch(() => setError('Unable to load university grading scale'));
+  }, []);
   const [verificationResult, setVerificationResult] = useState(null);
   const [loadingVerification, setLoadingVerification] = useState(false);
   const [transcriptResult, setTranscriptResult] = useState(null);
@@ -697,17 +745,14 @@ function AuthenticatedView({ account, session, onLogout }) {
     setLoadingTranscript(true);
     setError('');
     try {
-      const payload = await requestJson('/api/verify/transcript', {
+      const payload = await requestJson('/api/verify/grade-requirement', {
         method: 'POST',
-        body: JSON.stringify({ candidateId }),
+        body: JSON.stringify({ candidateId, moduleCode, minimumGrade }),
       });
-      // Keep the presentation state in sync with the binary response. The
-      // decision is still rendered from transcriptResult in transcript mode.
-      setVerificationResult(payload);
       setTranscriptResult(payload);
     } catch (requestError) {
       setError(requestError.message);
-      setTranscriptResult(null);
+      setTranscriptResult({ result: 'UNABLE_TO_VERIFY', evidence: { officialRecordAuthenticated: false } });
     } finally {
       setLoadingTranscript(false);
     }
@@ -865,7 +910,7 @@ function AuthenticatedView({ account, session, onLogout }) {
         <div className="workspace-copy">
           <span>Verification Workspace</span>
           <strong>
-            {portalMode === 'grade' ? 'CV Claim Verification' : portalMode === 'transcript' ? 'Full Transcript Integrity Check' : portalMode === 'evidence' ? 'Live Verification Evidence' : 'Admin User Governance'}
+            {portalMode === 'grade' ? 'CV Claim Verification' : portalMode === 'transcript' ? 'Grade Requirement Check' : portalMode === 'evidence' ? 'Live Verification Evidence' : 'Admin User Governance'}
           </strong>
         </div>
         <div className="mode-toggle-group">
@@ -881,7 +926,7 @@ function AuthenticatedView({ account, session, onLogout }) {
             className={portalMode === 'transcript' ? 'mode-toggle active' : 'mode-toggle'}
             onClick={() => setPortalMode('transcript')}
           >
-            Full Transcript
+            Grade Requirement Check
           </button>
           {isAdmin ? (
             <button
@@ -1012,15 +1057,15 @@ function AuthenticatedView({ account, session, onLogout }) {
             </>
           ) : (
             <>
-              <h3>{portalMode === 'grade' ? 'CV Claim Verification' : 'Full Transcript Integrity Check'}</h3>
+              <h3>{portalMode === 'grade' ? 'CV Claim Verification' : 'Grade Requirement Check'}</h3>
               <p className="card-intro">
                 {portalMode === 'grade'
                   ? 'Enter the Candidate ID, Module Code, and Grade supplied by the candidate. The portal returns only a validity decision.'
-                  : 'Enter a Candidate ID to verify every finalized result for that candidate. No result details are displayed.'}
+                  : 'Minimum academic requirement'}
               </p>
               <label>
                 Candidate ID
-                <input value={candidateId} onChange={(event) => setCandidateId(event.target.value)} />
+                <input id="requirement-candidate-id" value={candidateId} onChange={(event) => { setCandidateId(event.target.value); setTranscriptResult(null); }} />
               </label>
 
               {portalMode === 'grade' ? (
@@ -1034,14 +1079,24 @@ function AuthenticatedView({ account, session, onLogout }) {
                     <input value={claimedGrade} onChange={(event) => setClaimedGrade(event.target.value)} />
                   </label>
                 </>
-              ) : null}
+              ) : (
+                <>
+                  <label>Module Code<input value={moduleCode} onChange={(event) => { setModuleCode(event.target.value); setTranscriptResult(null); }} /></label>
+                  <label>Company Minimum Required Grade
+                    <select value={minimumGrade} onChange={(event) => { setMinimumGrade(event.target.value); setTranscriptResult(null); }}>
+                      <option value="">Select grade</option>
+                      {gradeScale.map((grade) => <option key={grade} value={grade}>{grade}</option>)}
+                    </select>
+                  </label>
+                </>
+              )}
 
               <div className="input-helper-panel">
                 <span>Verification Note</span>
                 <p>
                   {portalMode === 'grade'
                     ? 'The submitted CV claim is checked against the Component 1 anchored academic record. Student details are not returned.'
-                    : 'Every candidate result is checked for hash integrity and Merkle membership against the finalized blockchain anchor.'}
+                    : 'Official marks and grade remain private.'}
                 </p>
               </div>
 
@@ -1051,8 +1106,8 @@ function AuthenticatedView({ account, session, onLogout }) {
                     {loadingVerification ? 'Verifying...' : 'Verify CV Claim'}
                   </button>
                 ) : (
-                  <button type="button" className="primary-button" onClick={verifyTranscript} disabled={loadingTranscript || !candidateId.trim()}>
-                    {loadingTranscript ? 'Verifying...' : 'Verify Full Transcript'}
+                  <button type="button" className="primary-button" onClick={verifyTranscript} disabled={loadingTranscript || !candidateId.trim() || !moduleCode.trim() || !minimumGrade}>
+                    {loadingTranscript ? 'Verifying...' : 'Verify Requirement'}
                   </button>
                 )}
               </div>
@@ -1171,7 +1226,7 @@ function AuthenticatedView({ account, session, onLogout }) {
                   <div className="evidence-status-grid">
                     <EvidenceStatus label="Official claim" passed={evidenceResult.validClaim?.result === 'VALID'} value={evidenceResult.validClaim?.result} />
                     <EvidenceStatus label="Altered claim rejected" passed={evidenceResult.tamperedClaim?.result === 'INVALID'} value={evidenceResult.tamperedClaim?.result === 'INVALID' ? 'REJECTED' : 'FAILED'} />
-                    <EvidenceStatus label="Full transcript" passed={evidenceResult.transcript?.result === 'VALID'} value={evidenceResult.transcript?.result} />
+                    <EvidenceStatus label="Grade requirement" passed={evidenceResult.requirement?.result === 'MEETS_REQUIREMENT'} value={evidenceResult.requirement?.result} />
                     <EvidenceStatus label="MongoDB audit store" passed={evidenceResult.operational?.mongodb === true} value={evidenceResult.operational?.mongodb ? 'CONNECTED' : 'UNAVAILABLE'} />
                   </div>
                   <div className="evidence-check-list">
@@ -1189,14 +1244,16 @@ function AuthenticatedView({ account, session, onLogout }) {
               ) : (
                 <div className="empty-state-card">
                   <strong>No Evidence Run Yet</strong>
-                  <p className="muted-copy">Submit a known valid claim to run live positive, tamper-rejection, transcript, persistence, and formal-evidence checks.</p>
+                  <p className="muted-copy">Submit a known valid claim to run live positive, tamper-rejection, requirement, persistence, and formal-evidence checks.</p>
                 </div>
               )}
             </>
           ) : (
             <>
-              <h3>{portalMode === 'transcript' ? 'Full Transcript Decision' : 'Verification Decision'}</h3>
-              {displayedResult ? (
+              <h3>{portalMode === 'transcript' ? 'Requirement Decision' : 'Verification Decision'}</h3>
+              {portalMode === 'transcript' && displayedResult ? (
+                <RequirementDecision result={displayedResult} loading={loadingTranscript} onRetry={verifyTranscript} onCheckAnother={() => { setTranscriptResult(null); document.getElementById('requirement-candidate-id')?.focus(); }} />
+              ) : displayedResult ? (
                 <div className={`verification-result ${displayedResult.valid ? 'is-valid' : 'is-invalid'}`}>
                   <div className="result-banner">
                     <p className={displayedResult.valid ? 'success-text' : 'error-text'}>
@@ -1211,7 +1268,7 @@ function AuthenticatedView({ account, session, onLogout }) {
               ) : (
                 <div className="empty-state-card">
                   <strong>Awaiting Verification Request</strong>
-                  <p className="muted-copy">{portalMode === 'transcript' ? 'Submit a Candidate ID to obtain a full-transcript VALID or INVALID decision.' : 'Submit the three CV claim values to obtain a VALID or INVALID decision.'}</p>
+                  <p className="muted-copy">{portalMode === 'transcript' ? 'Awaiting requirement check.' : 'Submit the three CV claim values to obtain a VALID or INVALID decision.'}</p>
                 </div>
               )}
 

@@ -11,7 +11,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: ACADEMIC_DATA_BASE_URL
-        value: https://r26-se-011-production-6665.up.railway.app/proof
+        value: https://component-1-blockchain-production-28cc.up.railway.app/proof
       - key: REQUIRE_GRADE_ZKP
         value: "true"
       - key: JWT_ACCESS_TTL

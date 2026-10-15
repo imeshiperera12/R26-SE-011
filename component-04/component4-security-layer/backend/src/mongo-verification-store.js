@@ -33,7 +33,7 @@ async function connectMongo() {
   const db = loadMongoose();
   if (!connectionPromise) {
     connectionPromise = prepareMongoConnection(uri).then((connection) => db.connect(connection.uri, {
-      serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 5000),
+      serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 30000),
       ...connection.options,
     }));
   }

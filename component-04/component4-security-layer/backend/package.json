@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/api-server-clean.js",
     "listen": "node src/event-listener.js",
-    "test": "node --test ../test/claim-workflow.test.js ../test/zkp-login.test.js"
+    "test": "node --test ../test/claim-workflow.test.js ../test/zkp-login.test.js ../test/grade-requirement.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
