@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:5000',
+        target: 'https://r26-se-011-production.up.railway.app',
         changeOrigin: true,
         secure: false,
       },

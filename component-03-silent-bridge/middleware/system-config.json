@@ -1,6 +1,6 @@
 {
   "timeUnit": "minutes",
-  "standardUploadWindow": "1",
-  "boeReviewWindow": "2",
-  "specialConcernsWindow": "3"
+  "standardUploadWindow": 1,
+  "boeReviewWindow": 2,
+  "specialConcernsWindow": 3
 }

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://r26-se-011-production.up.railway.app';
 
 export default function PublicResultsPortal({ onBack }) {
     const [modules, setModules] = useState([]);
@@ -41,7 +41,7 @@ export default function PublicResultsPortal({ onBack }) {
     return (
         <div className="portal-wrapper">
             <nav className="top-nav">
-                <div className="nav-logo"><span>💠</span> Official Published Mark-Sheets</div>
+                <div className="nav-logo"><span>💠</span> Unofficial Published Mark-Sheets</div>
                 <button onClick={onBack} className="logout-btn">← Return to Gateway</button>
             </nav>
 

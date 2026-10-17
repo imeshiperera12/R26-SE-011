@@ -15,22 +15,37 @@ async function pushToBOEDirect(uploadReceipt, extractedData) {
             source: "COMPONENT_3_SPECIAL_CONCERN",
             isRecorrection: true
         },
-        records: extractedData.map(item => ({
-            candidateId: item.candidateId,
-            gradingData: {
-                "Marks": item.gradingData["Marks"] || item.gradingData["Final Marks"] || item.gradingData["New Marks"] || 0,
-                "Final Grade": item.gradingData["Final Grade"] || item.gradingData["Overall Grade"] || item.gradingData["Appealed Grade"] || "Pass",
-                ...item.gradingData
-            }
-        }))
+        records: extractedData.map(item => {
+            const rawMarks = item.gradingData["Marks"] || 
+                             item.gradingData["New Marks"] || 
+                             item.gradingData["Override Marks"] || 
+                             item.gradingData["Final Marks"] || 
+                             item.gradingData["Total Score"] || 0;
+
+            const rawGrade = item.gradingData["Final Grade"] || 
+                             item.gradingData["Appealed Grade"] || 
+                             item.gradingData["Override Grade"] || 
+                             item.gradingData["Grade"] || 
+                             item.gradingData["Overall Grade"] || "Pass";
+
+            return {
+                candidateId: item.candidateId,
+                gradingData: {
+                    ...item.gradingData,
+                    "Marks": rawMarks,
+                    "Final Grade": rawGrade
+                }
+            };
+        })
     };
 
     try {
         console.log(`\n⚡ Special Concern: Initiating Direct Handoff to Component 2 for ${uploadReceipt.moduleCode}...`);
-        
+        console.log(`   ➔ Payload sample:`, JSON.stringify(payload.records[0] || {}, null, 2));
+
         const response = await axios.post(COMPONENT_2_DIRECT_ENDPOINT, payload, {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 5000 
+            timeout: 8000 
         });
 
         console.log('✅ Handoff Successful: Component 2 acknowledged direct update.');

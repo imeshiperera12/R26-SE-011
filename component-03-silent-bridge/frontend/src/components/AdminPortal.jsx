@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AdminPortal.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function AdminPortal() {
     const [policy, setPolicy] = useState({
@@ -21,8 +21,14 @@ export default function AdminPortal() {
     }, []);
 
     const handleChange = (e) => {
-        setPolicy({ ...policy, [e.target.name]: e.target.value });
-    };
+    const { name, value } = e.target;
+    // Keep numbers as numeric types
+    const parsedValue = ['standardUploadWindow', 'boeReviewWindow', 'specialConcernsWindow'].includes(name)
+        ? parseInt(value) || 1
+        : value;
+
+    setPolicy({ ...policy, [name]: parsedValue });
+};
 
     const handleSave = async (e) => {
         e.preventDefault();

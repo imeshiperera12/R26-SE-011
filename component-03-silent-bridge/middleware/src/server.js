@@ -105,31 +105,70 @@ app.post('/api/ingest', upload.single('gradingSheet'), async (req, res) => {
         console.log(`⚙️  3. Extracting and standardizing schema...`);
         const incomingRows = parseExcelToJson(req.file.buffer);
 
-        // --- STAGE 3: INTELLIGENT PATCHING FOR RE-CORRECTIONS ---
+        // --- STAGE 3: INTELLIGENT DEEP-PATCHING FOR RE-CORRECTIONS & UPDATES ---
         let finalDataset = incomingRows;
+        let changedRecordsForHandoff = [];
+        const moduleBlocks = ledger.filter(b => b.moduleCode === moduleCode);
 
-        if (isRecorrection) {
-            console.log(`⚠️ Re-correction detected: Merging incoming appeal rows into existing module ledger state...`);
-            const moduleBlocks = ledger.filter(b => b.moduleCode === moduleCode);
+        if (moduleBlocks.length > 0) {
+            const latestBlock = moduleBlocks[moduleBlocks.length - 1];
             
-            if (moduleBlocks.length > 0) {
-                const latestBlock = moduleBlocks[moduleBlocks.length - 1];
-                let existingRecordsMap = {};
+            if (isRecorrection || incomingRows.length < latestBlock.data.length) {
+                console.log(`⚠️ Patching incoming rows into existing module ledger dataset (${latestBlock.data.length} existing records)...`);
                 
-                // Preserve all existing student class marks
+                let existingRecordsMap = {};
                 latestBlock.data.forEach(r => {
-                    existingRecordsMap[r.candidateId.toUpperCase()] = r;
+                    existingRecordsMap[r.candidateId.toUpperCase()] = {
+                        candidateId: r.candidateId,
+                        gradingData: { ...r.gradingData }
+                    };
                 });
 
-                // Overwrite or patch only the specific student(s) submitted in the appeal sheet
                 incomingRows.forEach(inc => {
                     const cid = inc.candidateId.toUpperCase();
-                    existingRecordsMap[cid] = inc; 
-                    console.log(`   ➔ Patched mark record for candidate: ${cid}`);
+                    
+                    // Resolve marks and grades from any possible column header variations
+                    const newMarks = inc.gradingData["Marks"] || inc.gradingData["New Marks"] || inc.gradingData["Override Marks"] || inc.gradingData["Final Marks"] || inc.gradingData["Total Score"];
+                    const newGrade = inc.gradingData["Final Grade"] || inc.gradingData["Appealed Grade"] || inc.gradingData["Override Grade"] || inc.gradingData["Grade"] || inc.gradingData["Overall Grade"];
+
+                    if (existingRecordsMap[cid]) {
+                        if (newMarks !== undefined) {
+                            existingRecordsMap[cid].gradingData["Marks"] = String(newMarks);
+                        }
+                        if (newGrade !== undefined) {
+                            existingRecordsMap[cid].gradingData["Final Grade"] = String(newGrade);
+                        }
+
+                        // Copy all remaining assessment breakdown keys
+                        Object.keys(inc.gradingData).forEach(k => {
+                            existingRecordsMap[cid].gradingData[k] = String(inc.gradingData[k]);
+                        });
+
+                        changedRecordsForHandoff.push(existingRecordsMap[cid]);
+                        console.log(`   ➔ Patched candidate record: ${cid} (Marks: ${existingRecordsMap[cid].gradingData["Marks"]}, Grade: ${existingRecordsMap[cid].gradingData["Final Grade"]})`);
+                    } else {
+                        // Normalize the new candidate
+                        const normalizedNew = {
+                            candidateId: inc.candidateId,
+                            gradingData: {
+                                "Marks": String(newMarks || 0),
+                                "Final Grade": String(newGrade || "Pass"),
+                                ...inc.gradingData
+                            }
+                        };
+                        existingRecordsMap[cid] = normalizedNew;
+                        changedRecordsForHandoff.push(normalizedNew);
+                        console.log(`   ➔ Added new candidate record: ${cid}`);
+                    }
                 });
 
                 finalDataset = Object.values(existingRecordsMap);
             }
+        }
+
+        // If no records were explicitly patched into map, use incoming rows as handoff
+        if (changedRecordsForHandoff.length === 0) {
+            changedRecordsForHandoff = incomingRows;
         }
 
         // --- STAGE 4: PRIVATE BLOCKCHAIN ANCHORING ---
@@ -160,9 +199,10 @@ app.post('/api/ingest', upload.single('gradingSheet'), async (req, res) => {
         let syncStatusVal = 'held-locally';
 
         if (isRecorrection) {
-            console.log(`⚠️ Context Routing: Special Concern flagged. Routing ONLY changed appeal records directly to Component 2...`);
-            // Pass ONLY the incoming changed rows to the direct update handoff
-            const handoffResult = await pushToBOEDirect(uploadMetadata, incomingRows);
+            console.log(`⚠️ Context Routing: Special Concern flagged. Routing ${changedRecordsForHandoff.length} normalized appeal records directly to Component 2...`);
+            
+            // Pass the normalized changed records
+            const handoffResult = await pushToBOEDirect(uploadMetadata, changedRecordsForHandoff);
             
             if (handoffResult.success || handoffResult.status === 'bypassed_boe' || handoffResult.status === 'queued_bypass') {
                 await Block.updateOne(
@@ -217,7 +257,6 @@ app.get('/api/module-status/:moduleCode', async (req, res) => {
         const stdWindow = Number(policy.standardUploadWindow);
         const boeWindow = Number(policy.boeReviewWindow);
 
-        // Lazy evaluation: Triggers handoff precisely when the status route is polled after the window closes
         if (timePassed >= stdWindow && timePassed < boeWindow) {
             const latestBlock = ledger.filter(b => b.moduleCode === targetModule).pop();
             
@@ -236,7 +275,7 @@ app.get('/api/module-status/:moduleCode', async (req, res) => {
 
                     console.log(`✅ Automatic BOE Handoff successful for module ${targetModule}!`);
                 } catch (handoffErr) {
-                    console.log(`ℹ️ Component 2 processed or skipped records as duplicates for module ${targetModule}. State synced.`);
+                    console.log(`ℹ️ Component 2 sync handled for module ${targetModule}: ${handoffErr.message}`);
                 }
             }
         }
@@ -274,9 +313,9 @@ app.post('/api/policy', (req, res) => {
 });
 
 // ============================================================================
-// DEMO RESET UTILITY (For presentation cleanup)
+// DEMO RESET UTILITY (Supports both GET and POST)
 // ============================================================================
-app.post('/api/demo/reset-ledger', async (req, res) => {
+app.all('/api/demo/reset-ledger', async (req, res) => {
     try {
         await Block.collection.drop();
         console.log("⚠️ [DEMO UTILITY] MongoDB ledger collection wiped clean for presentation reset.");

@@ -11,16 +11,29 @@ const parseExcelToJson = (fileBuffer) => {
             const keys = Object.keys(row);
             
             // 1. Find the primary Identifier column
-            const studentIdKey = keys.find(key => key.toLowerCase().includes('id') || key.toLowerCase().includes('student'));
+            const studentIdKey = keys.find(key => 
+                key.toLowerCase().includes('id') || 
+                key.toLowerCase().includes('student') ||
+                key.toLowerCase().includes('candidate') ||
+                key.toLowerCase().includes('reg')
+            );
             
-            // 2. Define keywords to explicitly strip out (PII and non-grade metadata)
-            const excludedKeywords = ['name', 'first', 'last', 'email', 'module', 'semester', 'course', 'year', 'code', 'program', 'degree', 'department', 'faculty', 'intake', 'group'];
+            // 2. Define keywords to explicitly strip out (PII, Contact info, and non-grade metadata)
+            const excludedKeywords = [
+                'name', 'first', 'last', 'email', 'phone', 'mobile', 'contact', 'tel',
+                'address', 'nic', 'gender', 'dob', 'module', 'semester', 'course', 
+                'year', 'code', 'program', 'degree', 'department', 'faculty', 'intake', 'group'
+            ];
             
-            // 3. Dynamically harvest ALL remaining columns (Assignments, Labs, Finals)
+            // 3. Dynamically harvest ALL remaining assessment columns (Assignments, Labs, Finals)
             const extractedGrades = {};
             keys.forEach(key => {
                 if (key !== studentIdKey) {
-                    const isExcluded = excludedKeywords.some(keyword => key.toLowerCase().includes(keyword));
+                    // Normalize both key and keyword to lowercase for foolproof matching
+                    const isExcluded = excludedKeywords.some(keyword => 
+                        key.toLowerCase().includes(keyword.toLowerCase())
+                    );
+                    
                     if (!isExcluded) {
                         extractedGrades[key] = String(row[key]); // Capture the mark
                     }
@@ -28,7 +41,7 @@ const parseExcelToJson = (fileBuffer) => {
             });
 
             // 4. SORT THE COLUMNS ALPHABETICALLY! 
-            // This guarantees the hash remains deterministic even if the lecturer rearranges the Excel columns.
+            // Guarantees deterministic SHA-256 hash even if lecturer rearranges Excel columns
             const sortedGrades = {};
             Object.keys(extractedGrades).sort().forEach(sortedKey => {
                 sortedGrades[sortedKey] = extractedGrades[sortedKey];
